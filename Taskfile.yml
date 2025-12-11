@@ -1,0 +1,59 @@
+version: '3'
+
+vars:
+  VENV_DIR: .venv
+  PYTHON_BIN: "{{.VENV_DIR}}/bin"
+  RUFF: "{{.PYTHON_BIN}}/ruff"
+  SOURCE_DIRS: "."
+
+tasks:
+  venv:init:
+    desc: "Initialize virtual environment and install uv"
+    cmds:
+      - python -m venv "{{.VENV_DIR}}" --upgrade-deps
+      - "{{.PYTHON_BIN}}/pip install uv"
+      - "{{.PYTHON_BIN}}/uv sync"
+
+  code:lint:
+    desc: "Run linting checks (ruff check)"
+    cmds:
+      - "{{.RUFF}} check {{.SOURCE_DIRS}}"
+
+  code:lint:fix:
+    desc: "Run linting and auto-fix issues"
+    cmds:
+      - "{{.RUFF}} check --fix {{.SOURCE_DIRS}}"
+
+  code:format:
+    desc: "Format code with ruff"
+    cmds:
+      - "{{.RUFF}} format {{.SOURCE_DIRS}}"
+
+  code:format:check:
+    desc: "Check if code is formatted (no changes)"
+    cmds:
+      - "{{.RUFF}} format --check {{.SOURCE_DIRS}}"
+
+  code:check:
+    desc: "Run all checks (lint + format check) - use in CI"
+    cmds:
+      - task: code:lint
+      - task: code:format:check
+
+  code:fix:
+    desc: "Auto-fix all issues (lint + format)"
+    cmds:
+      - task: code:lint:fix
+      - task: code:format
+
+  code:clean:
+    desc: "Clean cache files"
+    cmds:
+      - rm -rf .ruff_cache
+      - find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+      - find . -type f -name "*.pyc" -delete
+
+  code:show:config:
+    desc: "Show ruff configuration"
+    cmds:
+      - "{{.RUFF}} check --show-settings {{.SOURCE_DIRS}}"
