@@ -42,6 +42,22 @@ tasks:
     cmds:
       - "{{.UV}} add --dev {{.CLI_ARGS}}"
 
+  venv:outdated:
+    desc: "Check for outdated dependencies"
+    cmds:
+      - "{{.UV}} pip list --outdated"
+
+  venv:upgrade:
+    desc: "Upgrade dependencies to latest versions"
+    cmds:
+      - "{{.UV}} lock --upgrade"
+      - "{{.UV}} sync --group dev"
+
+  venv:upgrade:tools:
+    desc: "Upgrade pip and uv to latest versions"
+    cmds:
+      - "{{.PIP}} install --upgrade pip uv"
+
   code:lint:
     desc: "Run linting checks (ruff check)"
     cmds:

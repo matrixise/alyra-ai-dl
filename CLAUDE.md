@@ -106,6 +106,15 @@ task venv:sync
 
 # Install project in editable mode with dev dependencies
 task venv:install
+
+# Check for outdated packages
+task venv:outdated
+
+# Upgrade all dependencies to latest versions
+task venv:upgrade
+
+# Upgrade pip and uv tools
+task venv:upgrade:tools
 ```
 
 ### Manual Commands (Alternative)
@@ -153,8 +162,12 @@ task <task-name>
 - ✅ `venv:add:dev` - add dev dependency
 - ✅ `venv:sync` - sync dependencies from lockfile
 - ✅ `venv:install` - install project in editable mode
+- ✅ `venv:outdated` - check for outdated packages
+- ✅ `venv:upgrade` - upgrade all dependencies
+- ✅ `venv:upgrade:tools` - upgrade pip and uv tools
 - ❌ `init` - incorrect
 - ❌ `add` - incorrect
+- ❌ `outdated` - incorrect
 
 When creating new tasks, always use the appropriate category prefix.
 
