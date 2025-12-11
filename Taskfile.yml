@@ -3,6 +3,8 @@ version: '3'
 vars:
   VENV_DIR: .venv
   PYTHON_BIN: "{{.VENV_DIR}}/bin"
+  UV: "{{.PYTHON_BIN}}/uv"
+  PIP: "{{.PYTHON_BIN}}/pip"
   RUFF: "{{.PYTHON_BIN}}/ruff"
   SOURCE_DIRS: "."
 
@@ -11,8 +13,34 @@ tasks:
     desc: "Initialize virtual environment and install uv"
     cmds:
       - python -m venv "{{.VENV_DIR}}" --upgrade-deps
-      - "{{.PYTHON_BIN}}/pip install uv"
-      - "{{.PYTHON_BIN}}/uv sync"
+      - "{{.PIP}} install uv"
+      - "{{.UV}} sync"
+    status:
+      - test -f "{{.UV}}"
+
+  venv:install:
+    desc: "Install project dependencies in editable mode"
+    cmds:
+      - "{{.UV}} pip install -e . --group dev"
+    sources:
+      - pyproject.toml
+    generates:
+      - "{{.VENV_DIR}}/lib/python*/site-packages/*"
+
+  venv:sync:
+    desc: "Sync venv with lockfile (uv.lock)"
+    cmds:
+      - "{{.UV}} sync --group dev"
+
+  venv:add:
+    desc: "Add one or more packages to dependencies"
+    cmds:
+      - "{{.UV}} add {{.CLI_ARGS}}"
+
+  venv:add:dev:
+    desc: "Add one or more packages to dev dependencies"
+    cmds:
+      - "{{.UV}} add --dev {{.CLI_ARGS}}"
 
   code:lint:
     desc: "Run linting checks (ruff check)"

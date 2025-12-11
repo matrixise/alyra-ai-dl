@@ -54,6 +54,24 @@ uv sync  # if using pyproject.toml with uv
 
 ## Dependency Management with uv
 
+### Quick Commands (Recommended)
+
+```bash
+# Add a production dependency
+task venv:add <package-name>
+
+# Add a dev dependency
+task venv:add:dev <package-name>
+
+# Sync dependencies from uv.lock
+task venv:sync
+
+# Install project in editable mode with dev dependencies
+task venv:install
+```
+
+### Manual Commands (Alternative)
+
 ```bash
 # Add a package
 uv pip install <package-name>
@@ -93,8 +111,12 @@ task <task-name>
 
 **Virtual environment operations** → `venv:` prefix:
 - ✅ `venv:init` - initialize virtual environment
-- ✅ `venv:clean` - clean virtual environment (for future)
+- ✅ `venv:add` - add production dependency
+- ✅ `venv:add:dev` - add dev dependency
+- ✅ `venv:sync` - sync dependencies from lockfile
+- ✅ `venv:install` - install project in editable mode
 - ❌ `init` - incorrect
+- ❌ `add` - incorrect
 
 When creating new tasks, always use the appropriate category prefix.
 
