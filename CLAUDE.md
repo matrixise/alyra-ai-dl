@@ -10,6 +10,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Session history and what has been accomplished
 - Future TODOs and ideas
 
+### Memory Management Commands
+
+Use these slash commands to update MEMORY.md:
+
+```bash
+# Add a TODO item (uses haiku - fast)
+/add-todo Add pytest configuration
+
+# Add a technical decision (uses haiku)
+/add-decision Use PostgreSQL instead of SQLite
+
+# Add a session entry (uses haiku)
+/add-session Implemented user authentication system
+
+# Add a question to address (uses haiku)
+/add-question Should we use Redis for caching?
+
+# Comprehensive session update (uses sonnet - thorough)
+/update-memory Completed authentication feature with OAuth2
+```
+
+**When to use each command:**
+- `/add-todo` - Quick TODO additions during development
+- `/add-decision` - Document important technical choices with rationale
+- `/add-session` - At the end of a work session to log what was accomplished
+- `/add-question` - Note questions that need discussion or research
+- `/update-memory` - Comprehensive update of multiple sections at once
+
 ---
 
 ## Project Overview
