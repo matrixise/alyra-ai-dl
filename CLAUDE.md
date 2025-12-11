@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📖 Context and Memory
+
+**IMPORTANT:** Always read `MEMORY.md` first to understand the project history, decisions, and conventions. This file contains:
+- Technical decisions and their rationales
+- Project conventions (task naming, tool choices)
+- Session history and what has been accomplished
+- Future TODOs and ideas
+
+---
+
 ## Project Overview
 
 AI/Deep Learning project repository (alyra-ai-dl) using Python 3.12.12, uv for dependency management, and task for task automation.
