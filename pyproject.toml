@@ -11,6 +11,7 @@ authors = [
 
 [dependency-groups]
 dev = [
+    "lightning-sdk>=2025.12.9",
     "packaging>=25.0",
     "pip>=25.3",
     "ruff>=0.14.8",
