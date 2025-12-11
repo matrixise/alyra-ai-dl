@@ -27,6 +27,13 @@ Examples:
 - The `/commit` command generates commits without this footer
 - Keep commits clean and consistent with the project's commit style
 
+### File Creation and Encoding
+- **ALWAYS** use `cat > file << 'EOF'` with heredoc for creating text files (especially markdown, config files)
+- **NEVER** use the Write tool for text files as it can introduce binary characters and encoding issues
+- The Write tool has caused encoding problems before (null bytes, control characters like `\x1c`)
+- Git will treat files with binary characters as "data" instead of "text"
+- Verify file encoding after creation: `file <filename>` should show "UTF-8 text" not "data"
+
 ---
 
 ## 🎯 Technical Decisions
