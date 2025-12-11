@@ -158,6 +158,18 @@ task <task-name>
 
 When creating new tasks, always use the appropriate category prefix.
 
+### Task Conventions
+
+**IMPORTANT**: When creating or modifying tasks in `Taskfile.yml`:
+
+- **Task descriptions**: Keep descriptions concise and focused on what the task does
+- **Do NOT include usage examples** in the `desc` field (e.g., avoid "usage: task name -- args")
+- Usage information should be documented in this file or discovered via `task --list`
+
+Examples:
+- ✅ `desc: "Add one or more packages to dependencies"` - concise, clear
+- ❌ `desc: "Add packages (usage: task venv:add -- package1 package2)"` - includes usage, too verbose
+
 ## Code Quality Tools
 
 ### Tool Paths
