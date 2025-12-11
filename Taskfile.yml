@@ -20,6 +20,7 @@ tasks:
 
   venv:install:
     desc: "Install project dependencies in editable mode"
+    deps: [venv:init]
     cmds:
       - "{{.UV}} pip install -e . --group dev"
     sources:
@@ -29,52 +30,62 @@ tasks:
 
   venv:sync:
     desc: "Sync venv with lockfile (uv.lock)"
+    deps: [venv:init]
     cmds:
       - "{{.UV}} sync --group dev"
 
   venv:add:
     desc: "Add one or more packages to dependencies"
+    deps: [venv:init]
     cmds:
       - "{{.UV}} add {{.CLI_ARGS}}"
 
   venv:add:dev:
     desc: "Add one or more packages to dev dependencies"
+    deps: [venv:init]
     cmds:
       - "{{.UV}} add --dev {{.CLI_ARGS}}"
 
   venv:outdated:
     desc: "Check for outdated dependencies"
+    deps: [venv:init]
     cmds:
       - "{{.UV}} pip list --outdated"
 
   venv:upgrade:
     desc: "Upgrade dependencies to latest versions"
+    deps: [venv:init]
     cmds:
       - "{{.UV}} lock --upgrade"
       - "{{.UV}} sync --group dev"
 
   venv:upgrade:tools:
     desc: "Upgrade pip and uv to latest versions"
+    deps: [venv:init]
     cmds:
       - "{{.PIP}} install --upgrade pip uv"
 
   code:lint:
     desc: "Run linting checks (ruff check)"
+    deps: [venv:init]
     cmds:
       - "{{.RUFF}} check {{.SOURCE_DIRS}}"
 
   code:lint:fix:
     desc: "Run linting and auto-fix issues"
+    deps: [venv:init]
     cmds:
       - "{{.RUFF}} check --fix {{.SOURCE_DIRS}}"
 
   code:format:
     desc: "Format code with ruff"
+    deps: [venv:init]
     cmds:
       - "{{.RUFF}} format {{.SOURCE_DIRS}}"
 
   code:format:check:
     desc: "Check if code is formatted (no changes)"
+    deps: [venv:init]
     cmds:
       - "{{.RUFF}} format --check {{.SOURCE_DIRS}}"
 
@@ -99,5 +110,6 @@ tasks:
 
   code:show:config:
     desc: "Show ruff configuration"
+    deps: [venv:init]
     cmds:
       - "{{.RUFF}} check --show-settings {{.SOURCE_DIRS}}"
