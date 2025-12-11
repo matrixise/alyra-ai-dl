@@ -5,12 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+authors = [
+    {name = "Stéphane Wirtel", email = "stephane.wirtel@mgx.io"}
+]
 
 [dependency-groups]
 dev = [
     "pip>=25.3",
     "ruff>=0.14.8",
     "uv>=0.9.17",
+    "validate-pyproject>=0.24.1",
 ]
 
 [tool.ruff]

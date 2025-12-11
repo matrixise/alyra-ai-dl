@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 vars:
   VENV_DIR: .venv
@@ -6,6 +6,7 @@ vars:
   UV: "{{.PYTHON_BIN}}/uv"
   PIP: "{{.PYTHON_BIN}}/pip"
   RUFF: "{{.PYTHON_BIN}}/ruff"
+  VALIDATE_PYPROJECT: "{{.PYTHON_BIN}}/validate-pyproject"
   SOURCE_DIRS: "."
 
 tasks:
@@ -94,6 +95,7 @@ tasks:
     cmds:
       - task: code:lint
       - task: code:format:check
+      - task: code:validate:pyproject
 
   code:fix:
     desc: "Auto-fix all issues (lint + format)"
@@ -113,3 +115,9 @@ tasks:
     deps: [venv:init]
     cmds:
       - "{{.RUFF}} check --show-settings {{.SOURCE_DIRS}}"
+
+  code:validate:pyproject:
+    desc: "Validate pyproject.toml against PEP standards"
+    deps: [venv:init]
+    cmds:
+      - "{{.VALIDATE_PYPROJECT}} pyproject.toml"
