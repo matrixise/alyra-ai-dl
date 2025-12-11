@@ -22,6 +22,11 @@ Examples:
 - **uv**: Package manager for dependency management
 - **Task**: Automation tool with organized tasks by prefix
 
+### Git Commit Messages
+- **DO NOT** add Claude Code footer or co-author attribution in commit messages
+- The `/commit` command generates commits without this footer
+- Keep commits clean and consistent with the project's commit style
+
 ---
 
 ## 🎯 Technical Decisions
