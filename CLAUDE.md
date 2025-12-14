@@ -252,4 +252,6 @@ task code:fix          # Auto-fix all issues
   }
 }
 ```
-- to memorize
+## Additional Notes
+
+- To add a new dependency for development: `task venv:add:dev -- DEPENDENCY`
