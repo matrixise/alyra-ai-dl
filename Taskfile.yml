@@ -270,64 +270,6 @@ tasks:
     cmds:
       - "{{.PYTHON_BIN}}/python scripts/training/train_standard.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
 
-  ml:train:class-weights:
-    desc: "Train model with class weights on all 6 diseases"
-    deps: [venv:init]
-    vars:
-      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
-      OUTPUT_DIR: "models/symptom_classifier_weighted"
-    cmds:
-      - "{{.PYTHON_BIN}}/python scripts/training/train_class_weights.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
-
-  ml:train:focal-loss:
-    desc: "Train model with Focal Loss on all 6 diseases"
-    deps: [venv:init]
-    vars:
-      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
-      OUTPUT_DIR: "models/symptom_classifier_focal"
-    cmds:
-      - "{{.PYTHON_BIN}}/python scripts/training/train_focal_loss.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} --gamma 2.0 {{.CLI_ARGS}}"
-
-  ml:train:targeted-augmentation:
-    desc: "Train model with targeted augmentation on all 6 diseases"
-    deps: [venv:init]
-    vars:
-      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
-      OUTPUT_DIR: "models/symptom_classifier_targeted_aug"
-    cmds:
-      - "{{.PYTHON_BIN}}/python scripts/training/train_targeted_augmentation.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
-
-  ml:train:combined:
-    desc: "Train model with combined techniques (Focal Loss + Class Weights + Targeted Aug) - OPTIMAL"
-    deps: [venv:init]
-    vars:
-      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
-      OUTPUT_DIR: "models/symptom_classifier_combined"
-    cmds:
-      - "{{.PYTHON_BIN}}/python scripts/training/train_combined.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} --gamma 2.0 {{.CLI_ARGS}}"
-
-  ml:train:all:
-    desc: "Train all model variants sequentially for comparison"
-    deps: [venv:init]
-    cmds:
-      - task: ml:train:standard
-      - task: ml:train:class-weights
-      - task: ml:train:focal-loss
-      - task: ml:train:targeted-augmentation
-      - task: ml:train:combined
-
-  ml:train:compare:
-    desc: "Compare results from all trained model variants"
-    deps: [venv:init]
-    cmds:
-      - echo "Comparing model variants..."
-      - echo "Standard - models/symptom_classifier/final"
-      - echo "Class Weights - models/symptom_classifier_weighted/final"
-      - echo "Focal Loss - models/symptom_classifier_focal/final"
-      - echo "Targeted Aug - models/symptom_classifier_targeted_aug/final"
-      - echo "Combined OPTIMAL - models/symptom_classifier_combined/final"
-      - "{{.PYTHON_BIN}}/python compare_results.py {{.CLI_ARGS}}"
-
   ml:train:quick:
     desc: "Quick training test with 2 diseases only (for development)"
     deps: [venv:init]
@@ -335,13 +277,7 @@ tasks:
       DISEASES: "anxiety,pneumonia"
       OUTPUT_DIR: "models/symptom_classifier_quick"
     cmds:
-      - "{{.PYTHON_BIN}}/python scripts/training/train_combined.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} --epochs 2 {{.CLI_ARGS}}"
-
-  ml:train:custom:
-    desc: "Train a custom model variant (use -- <script> <diseases> for custom config)"
-    deps: [venv:init]
-    cmds:
-      - "{{.PYTHON_BIN}}/python scripts/training/{{.CLI_ARGS}}"
+      - "{{.PYTHON_BIN}}/python scripts/training/train_standard.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} --epochs 20 {{.CLI_ARGS}}"
 
   ml:prepare:dataset:
     desc: "Prepare dataset from augmented source for training"
