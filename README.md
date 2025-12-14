@@ -1,6 +1,6 @@
 # alyra-ai-dl
 
-A Python AI/Deep Learning project with modern tooling and automation.
+Medical symptom analyzer using Bio_ClinicalBERT for disease classification. This project provides multiple interfaces (CLI, API, Web UI) to analyze symptoms and predict potential diseases using transformer-based models.
 
 ## Prerequisites
 
@@ -52,6 +52,125 @@ This installs the project in editable mode with all dev dependencies.
 - **[ruff](https://github.com/astral-sh/ruff)**: Modern Python linter and formatter (replaces isort, black, flake8)
 - **[Task](https://taskfile.dev/)**: Modern task runner (replaces Makefile)
 - **[asdf](https://asdf-vm.com/)**: Version manager for Python and CLI tools
+
+## Models
+
+The project uses **Bio_ClinicalBERT** fine-tuned for disease classification from symptom descriptions. The default model path is `models/symptom_classifier-mini/final`.
+
+### Model Features
+- Multi-class disease classification
+- Confidence scoring with adjustable thresholds
+- Support for unknown symptoms (fallback handling)
+- Device auto-detection (CUDA, MPS, or CPU)
+
+## Applications
+
+The project includes three application interfaces:
+
+### 1. CLI (Command-Line Interface)
+
+Interactive terminal interface using Bio_ClinicalBERT + Ollama for symptom analysis:
+
+```bash
+# Run the CLI
+python -m apps.cli
+
+# With custom model
+python -m apps.cli --model models/my-model
+
+# Skip LLM response (BERT only)
+python -m apps.cli --no-llm
+
+# Custom confidence threshold
+python -m apps.cli --threshold 0.7
+```
+
+**Features:**
+- Interactive symptom input
+- BERT-based disease prediction
+- Ollama-powered patient-friendly explanations
+- Confidence scoring and threshold filtering
+
+### 2. FastAPI (REST API)
+
+Production-ready API with health checks and batch predictions:
+
+```bash
+# Run the API
+python -m apps.api
+
+# Or with custom settings
+API_PORT=8080 MODEL_PATH=./models/my-model python -m apps.api
+```
+
+**Endpoints:**
+- `GET /` - API information
+- `GET /health` - Health check
+- `GET /info` - Model information
+- `POST /predict` - Single prediction
+- `POST /predict/batch` - Batch predictions
+
+**API Documentation:** Visit `http://localhost:8000/docs` after starting the server.
+
+### 3. Streamlit (Web UI)
+
+Interactive web interface with visualizations:
+
+```bash
+# Run the Streamlit app
+streamlit run apps/streamlit_app.py
+```
+
+**Features:**
+- User-friendly web interface
+- Probability visualizations (charts, tables)
+- Adjustable confidence threshold
+- Real-time predictions
+
+## Examples
+
+### CLI Example
+
+```bash
+$ python -m apps.cli
+
+You: I have rapid heartbeat, sweating, trembling, shortness of breath, chest pain
+
+[BERT] Analyzing symptoms...
+┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃ Metric     ┃ Value          ┃
+┣━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┣
+┃ Prediction │ panic disorder │
+┃ Confidence │ 86.1%          ┃
+┗━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛
+
+[Ollama] Generating response...
+Based on your symptoms, the analysis suggests a possible panic disorder...
+```
+
+### API Example
+
+```bash
+# Single prediction
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symptoms": "hip pain, back pain, neck pain, low back pain",
+    "threshold": 0.55
+  }'
+
+# Response
+{
+  "disease": "spondylolisthesis",
+  "confidence": 0.89,
+  "threshold": 0.55,
+  "all_probs": {
+    "spondylolisthesis": 0.89,
+    "herniated_disk": 0.08,
+    "...": "..."
+  }
+}
+```
 
 ## Quick Start
 
@@ -113,13 +232,23 @@ Run `task --list` to see all available commands. Commands are organized by categ
 
 ```
 alyra-ai-dl/
-├── .tool-versions       # asdf version specifications
-├── Taskfile.yml         # Task automation configuration
-├── pyproject.toml       # Project metadata and tool configuration
-├── uv.lock              # Locked dependency versions
-├── CLAUDE.md            # Claude Code integration documentation
-├── MEMORY.md            # Project decisions and session history
-└── .venv/               # Virtual environment (not in git)
+├── apps/                      # Application interfaces
+│   ├── cli.py                 # Command-line interface (BERT + Ollama)
+│   ├── api.py                 # FastAPI REST API
+│   ├── streamlit_app.py       # Streamlit web interface
+│   └── llm_processor.py       # Ollama LLM integration
+├── src/
+│   └── alyra_ai_dl/           # Core package
+│       ├── core/              # Model and device management
+│       ├── inference/         # Prediction pipeline
+│       └── training/          # Training utilities
+├── .tool-versions             # asdf version specifications
+├── Taskfile.yml               # Task automation configuration
+├── pyproject.toml             # Project metadata and dependencies
+├── uv.lock                    # Locked dependency versions
+├── CLAUDE.md                  # Claude Code integration documentation
+├── MEMORY.md                  # Project decisions and session history
+└── .venv/                     # Virtual environment (not in git)
 ```
 
 ## Development Workflow
@@ -144,6 +273,47 @@ All tasks are defined in `Taskfile.yml` with organized prefixes:
 - Tasks use variables for tool paths (`.venv/bin/`)
 - Tasks automatically ensure virtualenv exists via `deps: [venv:init]`
 
+## Technologies utilisées
+
+### Langage et runtime
+- **Python 3.12.12** (géré via asdf)
+
+### Bibliothèques principales (ML/AI)
+- **transformers** - Modèles transformers (Bio_ClinicalBERT) avec support PyTorch
+- **datasets** - Gestion et manipulation de datasets
+- **scikit-learn** - Machine learning et analyses statistiques
+
+### Applications Web et API
+- **fastapi** - Framework API REST moderne et performant
+- **streamlit** - Interface web interactive pour ML
+- **uvicorn** - Serveur ASGI haute performance
+
+### LLM Integration
+- **langchain-core** - Framework pour applications LLM
+- **langchain-ollama** - Intégration Ollama pour génération de texte
+
+### Interface utilisateur
+- **typer** - Framework CLI moderne basé sur type hints
+- **rich** - Formatage terminal (tables, panels, couleurs)
+
+### Utilitaires
+- **loguru** - Logging simplifié et puissant
+- **pydantic-settings** - Gestion de configuration
+- **python-dotenv** - Variables d'environnement
+
+### Outils de développement
+- **uv** - Gestionnaire de paquets Python rapide (10-100x faster than pip)
+- **ruff** - Linter et formateur Python moderne
+- **Task** - Task runner moderne
+- **asdf** - Gestionnaire de versions d'outils
+- **jupyter** - Notebooks interactifs
+- **tensorboard** - Visualisation d'entraînement de modèles
+- **plotly** - Visualisations interactives
+- **seaborn** - Visualisations statistiques avancées
+- **umap-learn** - Réduction de dimensionnalité
+- **lightning-sdk** - Intégration Lightning Studio
+- **watchdog** - Monitoring de fichiers
+
 ## Documentation
 
 - **CLAUDE.md** - Claude Code integration, conventions, and guidelines
@@ -155,8 +325,8 @@ This project requires **Python 3.12.12** or higher (specified in `pyproject.toml
 
 ## License
 
-[Add your license here]
+Projet académique - Formation Alyra
 
 ## Contributing
 
-[Add contribution guidelines here]
+Stéphane Wirtel <stephane@wirtel.be>
