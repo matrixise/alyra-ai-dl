@@ -1,22 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "alyra-ai-dl"
 version = "0.1.0"
-description = "Add your description here"
+description = "Disease classification from symptoms using transformers"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi>=0.124.2",
+    "langchain-core>=1.2.0",
+    "langchain-ollama>=1.0.1",
+    "loguru>=0.7.3",
+    "pydantic-settings>=2.12.0",
+    "python-dotenv>=1.2.1",
+    "rich>=14.2.0",
+    "streamlit>=1.52.1",
+    "transformers[torch]>=4.57.3",
+    "typer>=0.20.0",
+    "uvicorn[standard]>=0.38.0",
+]
 authors = [
     {name = "Stéphane Wirtel", email = "stephane.wirtel@mgx.io"}
 ]
 
 [dependency-groups]
 dev = [
+    "ipykernel>=7.1.0",
+    "jupyter>=1.1.1",
+    "kaleido>=1.2.0",
     "lightning-sdk>=2025.12.9",
     "packaging>=25.0",
     "pip>=25.3",
+    "plotly>=6.5.0",
     "ruff>=0.14.8",
+    "scikit-learn>=1.8.0",
+    "seaborn>=0.13.2",
+    "tensorboard>=2.20.0",
+    "umap-learn>=0.5.9.post2",
     "uv>=0.9.17",
     "validate-pyproject>=0.24.1",
+    "watchdog>=6.0.0",
 ]
 
 [tool.ruff]
@@ -47,3 +72,9 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+alyra_ai_dl = ["py.typed"]
