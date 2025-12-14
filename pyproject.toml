@@ -9,6 +9,7 @@ description = "Disease classification from symptoms using transformers"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "datasets>=4.4.1",
     "fastapi>=0.124.2",
     "langchain-core>=1.2.0",
     "langchain-ollama>=1.0.1",
