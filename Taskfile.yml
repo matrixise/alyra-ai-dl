@@ -7,7 +7,13 @@ vars:
   PIP: "{{.PYTHON_BIN}}/pip"
   RUFF: "{{.PYTHON_BIN}}/ruff"
   VALIDATE_PYPROJECT: "{{.PYTHON_BIN}}/validate-pyproject"
+  LIGHTNING: "{{.PYTHON_BIN}}/lightning"
   SOURCE_DIRS: "."
+  # Lightning Studio configuration
+  LIGHTNING_STUDIO_NAME: alyra-dl
+  LIGHTNING_TEAMSPACE: stephanewirtel/tool-exploration-project
+  LIGHTNING_TEAMSPACE_SHORT: tool-exploration-project
+  LIGHTNING_STUDIO_URI: "lit://stephanewirtel/tool-exploration-project/studios/alyra-dl"
 
 tasks:
   venv:init:
@@ -121,3 +127,240 @@ tasks:
     deps: [venv:init]
     cmds:
       - "{{.VALIDATE_PYPROJECT}} pyproject.toml"
+
+  lightning:login:
+    desc: "Login to Lightning AI"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} login"
+
+  lightning:logout:
+    desc: "Logout from Lightning AI"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} logout"
+
+  lightning:studio:list:
+    desc: "List Lightning AI studios"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio list"
+
+  lightning:studio:list:all:
+    desc: "List all Lightning AI studios (not just yours)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio list --all"
+
+  lightning:studio:start:
+    desc: "Start the default Lightning studio (alyra-dl)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio start --name {{.LIGHTNING_STUDIO_NAME}} --teamspace {{.LIGHTNING_TEAMSPACE}}"
+
+  lightning:studio:start:t4:
+    desc: "Start the Lightning studio with T4 GPU"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio start --name {{.LIGHTNING_STUDIO_NAME}} --teamspace {{.LIGHTNING_TEAMSPACE}} --machine T4"
+
+  lightning:studio:start:custom:
+    desc: "Start a specific Lightning studio (use -- --name <name>)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio start --teamspace {{.LIGHTNING_TEAMSPACE}} {{.CLI_ARGS}}"
+
+  lightning:studio:switch:t4:
+    desc: "Switch the default Lightning studio to T4 machine"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio switch --name {{.LIGHTNING_STUDIO_NAME}} --machine T4"
+
+  lightning:studio:stop:
+    desc: "Stop the default Lightning studio (alyra-dl)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio stop --name {{.LIGHTNING_STUDIO_NAME}} --teamspace {{.LIGHTNING_TEAMSPACE}}"
+
+  lightning:studio:stop:custom:
+    desc: "Stop a specific Lightning studio (use -- --name <name>)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio stop --teamspace {{.LIGHTNING_TEAMSPACE}} {{.CLI_ARGS}}"
+
+  lightning:studio:ssh:
+    desc: "SSH into the default Lightning studio (alyra-dl)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio ssh --teamspace {{.LIGHTNING_TEAMSPACE}} --name {{.LIGHTNING_STUDIO_NAME}}"
+
+  lightning:studio:ssh:custom:
+    desc: "SSH into a specific Lightning studio (use -- --name <name>)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio ssh --teamspace {{.LIGHTNING_TEAMSPACE}} {{.CLI_ARGS}}"
+
+  lightning:studio:delete:
+    desc: "Delete the default Lightning studio (alyra-dl)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio delete --name {{.LIGHTNING_STUDIO_NAME}} --teamspace {{.LIGHTNING_TEAMSPACE}}"
+
+  lightning:studio:delete:custom:
+    desc: "Delete a specific Lightning studio (use -- --name <name>)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio delete --teamspace {{.LIGHTNING_TEAMSPACE}} {{.CLI_ARGS}}"
+
+  lightning:studio:cp:
+    desc: "Copy files to/from Lightning studio (use -- <source> <dest>)"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} studio cp {{.CLI_ARGS}}"
+
+  lightning:studio:download:model:
+    desc: "Download model from Lightning studio"
+    deps: [venv:init]
+    vars:
+      MODEL_NAME: '{{.CLI_ARGS | default "symptom_classifier"}}'
+    cmds:
+      - mkdir -p models/{{.MODEL_NAME}}
+      - "{{.LIGHTNING}} download folder --studio {{.LIGHTNING_TEAMSPACE_SHORT}}/{{.LIGHTNING_STUDIO_NAME}} --local-path models/{{.MODEL_NAME}} models/{{.MODEL_NAME}}/final"
+
+  lightning:studio:download:results:
+    desc: "Download all training results (models + logs)"
+    deps: [venv:init]
+    cmds:
+      - mkdir -p models logs
+      - "{{.LIGHTNING}} studio cp {{.LIGHTNING_STUDIO_URI}}/models/ ./models/"
+      - "{{.LIGHTNING}} studio cp {{.LIGHTNING_STUDIO_URI}}/logs/ ./logs/"
+
+  ml:tensorboard:
+    desc: "Launch TensorBoard to visualize training logs"
+    deps: [venv:init]
+    cmds:
+      - echo "Starting TensorBoard at http://localhost:6006"
+      - echo "Press Ctrl+C to stop"
+      - "{{.PYTHON_BIN}}/tensorboard --logdir models --port 6006"
+
+  ml:tensorboard:custom:
+    desc: "Launch TensorBoard for specific model directory"
+    deps: [venv:init]
+    cmds:
+      - "{{.PYTHON_BIN}}/tensorboard {{.CLI_ARGS}}"
+
+  ml:analyze:
+    desc: "Analyze training logs and generate plots"
+    deps: [venv:init]
+    cmds:
+      - "{{.PYTHON_BIN}}/python analyze_training_logs.py {{.CLI_ARGS}}"
+
+  ml:analyze:compare:
+    desc: "Compare multiple training runs"
+    deps: [venv:init]
+    cmds:
+      - "{{.PYTHON_BIN}}/python analyze_training_logs.py --compare {{.CLI_ARGS}}"
+
+  ml:train:standard:
+    desc: "Train standard model on all 6 diseases"
+    deps: [venv:init]
+    vars:
+      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
+      OUTPUT_DIR: "models/symptom_classifier"
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/training/train_standard.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
+
+  ml:train:class-weights:
+    desc: "Train model with class weights on all 6 diseases"
+    deps: [venv:init]
+    vars:
+      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
+      OUTPUT_DIR: "models/symptom_classifier_weighted"
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/training/train_class_weights.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
+
+  ml:train:focal-loss:
+    desc: "Train model with Focal Loss on all 6 diseases"
+    deps: [venv:init]
+    vars:
+      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
+      OUTPUT_DIR: "models/symptom_classifier_focal"
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/training/train_focal_loss.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} --gamma 2.0 {{.CLI_ARGS}}"
+
+  ml:train:targeted-augmentation:
+    desc: "Train model with targeted augmentation on all 6 diseases"
+    deps: [venv:init]
+    vars:
+      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
+      OUTPUT_DIR: "models/symptom_classifier_targeted_aug"
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/training/train_targeted_augmentation.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
+
+  ml:train:combined:
+    desc: "Train model with combined techniques (Focal Loss + Class Weights + Targeted Aug) - OPTIMAL"
+    deps: [venv:init]
+    vars:
+      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
+      OUTPUT_DIR: "models/symptom_classifier_combined"
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/training/train_combined.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} --gamma 2.0 {{.CLI_ARGS}}"
+
+  ml:train:all:
+    desc: "Train all model variants sequentially for comparison"
+    deps: [venv:init]
+    cmds:
+      - task: ml:train:standard
+      - task: ml:train:class-weights
+      - task: ml:train:focal-loss
+      - task: ml:train:targeted-augmentation
+      - task: ml:train:combined
+
+  ml:train:compare:
+    desc: "Compare results from all trained model variants"
+    deps: [venv:init]
+    cmds:
+      - echo "Comparing model variants..."
+      - echo "Standard - models/symptom_classifier/final"
+      - echo "Class Weights - models/symptom_classifier_weighted/final"
+      - echo "Focal Loss - models/symptom_classifier_focal/final"
+      - echo "Targeted Aug - models/symptom_classifier_targeted_aug/final"
+      - echo "Combined OPTIMAL - models/symptom_classifier_combined/final"
+      - "{{.PYTHON_BIN}}/python compare_results.py {{.CLI_ARGS}}"
+
+  ml:train:quick:
+    desc: "Quick training test with 2 diseases only (for development)"
+    deps: [venv:init]
+    vars:
+      DISEASES: "anxiety,pneumonia"
+      OUTPUT_DIR: "models/symptom_classifier_quick"
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/training/train_combined.py '{{.DISEASES}}' --data-path data/cleaned.csv --output-dir {{.OUTPUT_DIR}} --epochs 2 {{.CLI_ARGS}}"
+
+  ml:train:custom:
+    desc: "Train a custom model variant (use -- <script> <diseases> for custom config)"
+    deps: [venv:init]
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/training/{{.CLI_ARGS}}"
+
+  ml:prepare:dataset:
+    desc: "Prepare dataset from augmented source for training"
+    deps: [venv:init]
+    vars:
+      INPUT_FILE: "data/Final_Augmented_dataset_Diseases_and_Symptoms.csv"
+      OUTPUT_FILE: "data/prepared-dataset.csv"
+      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/data/prepare_dataset.py --input {{.INPUT_FILE}} --output {{.OUTPUT_FILE}} --diseases '{{.DISEASES}}' {{.CLI_ARGS}}"
+
+  app:api:dev:
+    desc: "Start FastAPI development server"
+    deps: [venv:init]
+    cmds:
+      - "{{.PYTHON_BIN}}/python apps/api.py"
+
+  app:streamlit:dev:
+    desc: "Start Streamlit development server"
+    deps: [venv:init]
+    cmds:
+      - "{{.PYTHON_BIN}}/streamlit run apps/streamlit_app.py"
