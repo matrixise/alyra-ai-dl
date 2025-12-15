@@ -301,6 +301,12 @@ tasks:
     cmds:
       - "{{.PYTHON_BIN}}/streamlit run apps/streamlit_app.py"
 
+  app:chainlit:dev:
+    desc: "Start Chainlit chat interface"
+    deps: [venv:init]
+    cmds:
+      - "{{.PYTHON_BIN}}/chainlit run apps/chainlit_app.py"
+
   lightning:studio:download:model:
     desc: "Download models from Lightning Studio"
     deps: [venv:init]
