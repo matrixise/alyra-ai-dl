@@ -300,3 +300,9 @@ tasks:
     deps: [venv:init]
     cmds:
       - "{{.PYTHON_BIN}}/streamlit run apps/streamlit_app.py"
+
+  lightning:studio:download:model:
+    desc: "Download models from Lightning Studio"
+    deps: [venv:init]
+    cmds:
+      - "{{.LIGHTNING}} download folder --studio tool-exploration-project/alyra-dl --local-path models/ models/"
