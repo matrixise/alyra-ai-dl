@@ -3,21 +3,113 @@ LLM processor for generating clinical summaries for general practitioners.
 
 IMPORTANT: The LLM does NOT extract symptoms or make predictions.
 Bio_ClinicalBERT handles all symptom understanding and disease prediction.
-Ollama ONLY generates professional clinical summaries for healthcare professionals.
+The LLM ONLY generates professional clinical summaries for healthcare professionals.
+
+Supports multiple LLM backends: Ollama (local), OpenAI, and Lightning AI.
 """
 
+import os
+from enum import Enum
+
+from langchain_core.language_models import BaseLanguageModel
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
+from langchain_openai import ChatOpenAI
 
+# Ollama defaults (local)
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
-DEFAULT_MODEL = "llama3"
+DEFAULT_OLLAMA_MODEL = "llama3"
+
+# OpenAI defaults
+DEFAULT_OPENAI_MODEL = "gpt-4"
+
+# Lightning AI defaults (cloud)
+DEFAULT_LIGHTNING_URL = "https://lightning.ai/api/v1/"
+DEFAULT_LIGHTNING_MODEL = "lightning-ai/llama-3.3-70b"
+
+
+class LLMBackend(str, Enum):
+    """Supported LLM backends."""
+
+    OLLAMA = "ollama"
+    OPENAI = "openai"
+    LIGHTNING = "lightning"
 
 
 def get_llm(
-    base_url: str = DEFAULT_OLLAMA_URL, model: str = DEFAULT_MODEL
-) -> OllamaLLM:
-    """Create an OllamaLLM instance with the specified URL and model."""
-    return OllamaLLM(model=model, base_url=base_url)
+    backend: LLMBackend | str = LLMBackend.OLLAMA,
+    base_url: str | None = None,
+    model: str | None = None,
+    api_key: str | None = None,
+) -> BaseLanguageModel:
+    """
+    Create an LLM instance with the specified backend and configuration.
+
+    Args:
+        backend: LLM backend to use ("ollama", "openai", or "lightning")
+        base_url: Base URL for the API (uses backend defaults if None)
+        model: Model name (uses backend defaults if None)
+        api_key: API key for OpenAI/Lightning (reads from env if None)
+
+    Returns:
+        LLM instance compatible with LangChain (BaseLanguageModel)
+
+    Raises:
+        ValueError: If OpenAI/Lightning backend is used without API key
+
+    Examples:
+        >>> # Use local Ollama (default)
+        >>> llm = get_llm()
+        >>> # Use OpenAI
+        >>> llm = get_llm(backend="openai")
+        >>> # Use Lightning AI
+        >>> llm = get_llm(backend="lightning")
+    """
+    backend = LLMBackend(backend) if isinstance(backend, str) else backend
+
+    if backend == LLMBackend.OLLAMA:
+        # Ollama configuration
+        url = base_url or DEFAULT_OLLAMA_URL
+        model_name = model or DEFAULT_OLLAMA_MODEL
+        return OllamaLLM(model=model_name, base_url=url)
+
+    elif backend == LLMBackend.OPENAI:
+        # OpenAI configuration
+        model_name = model or DEFAULT_OPENAI_MODEL
+        key = api_key or os.getenv("OPENAI_API_KEY")
+
+        if not key:
+            raise ValueError(
+                "OpenAI backend requires an API key. "
+                "Set OPENAI_API_KEY environment variable or pass api_key parameter."
+            )
+
+        return ChatOpenAI(
+            model=model_name,
+            api_key=key,
+            base_url=base_url,  # Allow custom OpenAI-compatible endpoints
+        )
+
+    elif backend == LLMBackend.LIGHTNING:
+        # Lightning AI configuration
+        url = base_url or DEFAULT_LIGHTNING_URL
+        model_name = model or DEFAULT_LIGHTNING_MODEL
+        key = api_key or os.getenv("LIGHTNING_API_KEY")
+
+        if not key:
+            raise ValueError(
+                "Lightning AI backend requires an API key. "
+                "Set LIGHTNING_API_KEY environment variable or pass api_key parameter."
+            )
+
+        return ChatOpenAI(
+            base_url=url,
+            api_key=key,
+            model=model_name,
+        )
+
+    else:
+        raise ValueError(f"Unsupported backend: {backend}")
 
 
 RESPONSE_PROMPT = PromptTemplate.from_template("""
@@ -47,8 +139,9 @@ Clinical Summary:""")
 def generate_response(
     user_text: str,
     prediction: dict,
-    base_url: str = DEFAULT_OLLAMA_URL,
-    model: str = DEFAULT_MODEL,
+    backend: LLMBackend | str = LLMBackend.OLLAMA,
+    base_url: str | None = None,
+    model: str | None = None,
 ) -> str:
     """
     Generate a clinical summary for general practitioners based on BERT prediction.
@@ -59,11 +152,31 @@ def generate_response(
                    - disease: predicted disease or "unknown"
                    - confidence: float 0-1
                    - all_probs: dict of {disease: probability}
-        base_url: Ollama server URL (default: http://localhost:11434)
-        model: Ollama model name (default: llama3)
+        backend: LLM backend to use ("ollama", "openai", "lightning")
+        base_url: Base URL for the API (uses backend defaults if None)
+        model: Model name (uses backend defaults if None)
 
     Returns:
         Professional clinical summary string for practitioners
+
+    Raises:
+        ValueError: If backend requires API key but none is available
+        ConnectionError: If backend server is unreachable
+
+    Examples:
+        >>> # Use Ollama (default)
+        >>> response = generate_response(text, prediction)
+        >>> # Use OpenAI
+        >>> response = generate_response(text, prediction, backend="openai")
+        >>> # Use Lightning AI
+        >>> response = generate_response(text, prediction, backend="lightning")
+        >>> # Custom Ollama server
+        >>> response = generate_response(
+        ...     text, prediction,
+        ...     backend="ollama",
+        ...     base_url="http://custom:11434",
+        ...     model="mistral"
+        ... )
     """
     # Format all probabilities for the prompt (filter out < 1%)
     all_probs = prediction.get("all_probs", {})
@@ -74,7 +187,7 @@ def generate_response(
         f"- {disease}: {prob:.1%}" for disease, prob in filtered_probs
     )
 
-    llm = get_llm(base_url=base_url, model=model)
+    llm = get_llm(backend=backend, base_url=base_url, model=model)
     chain = RESPONSE_PROMPT | llm
     return chain.invoke(
         {

@@ -56,10 +56,23 @@ async def main(message: cl.Message):
         prediction = predict_with_threshold(classifier, user_text, threshold=0.55)
         step.output = f"Predicted: {prediction['disease']} ({prediction['confidence']:.1%})"
 
-    # Step 2: Ollama generates patient-friendly explanation
+    # Step 2: LLM generates patient-friendly explanation
     async with cl.Step(name="Generating response...") as step:
-        response = generate_response(user_text, prediction)
-        step.output = "Response generated"
+        try:
+            response = generate_response(user_text, prediction)
+            step.output = "Response generated"
+        except ValueError as e:
+            # API key missing
+            response = f"⚠️ LLM unavailable: {e}\n\n**BERT Prediction Only:**\n"
+            response += f"- Disease: {prediction['disease']}\n"
+            response += f"- Confidence: {prediction['confidence']:.1%}"
+            step.output = f"LLM unavailable: {e}"
+        except ConnectionError as e:
+            # LLM server unreachable
+            response = f"⚠️ LLM connection failed: {e}\n\n**BERT Prediction Only:**\n"
+            response += f"- Disease: {prediction['disease']}\n"
+            response += f"- Confidence: {prediction['confidence']:.1%}"
+            step.output = f"LLM connection failed: {e}"
 
     # Show technical details
     details = f"""

@@ -50,8 +50,14 @@ def analyze(
     ] = 0.55,
     no_llm: Annotated[
         bool,
-        typer.Option("--no-llm", help="Skip Ollama response generation (BERT only)"),
+        typer.Option("--no-llm", help="Skip LLM response generation (BERT only)"),
     ] = False,
+    llm_backend: Annotated[
+        str,
+        typer.Option(
+            "--llm-backend", help="LLM backend to use (ollama, openai, lightning)"
+        ),
+    ] = "ollama",
     ollama_url: Annotated[
         str,
         typer.Option("--ollama-url", "-u", help="Ollama server URL"),
@@ -150,12 +156,18 @@ def analyze(
 
             console.print(prob_table)
 
-        # Step 2: Ollama response (optional)
+        # Step 2: LLM response (optional)
         if not no_llm:
-            console.print("\n[bold cyan][Ollama][/bold cyan] Generating response...")
+            console.print(
+                f"\n[bold cyan][{llm_backend.upper()}][/bold cyan] Generating response..."
+            )
             try:
                 response = generate_response(
-                    user_input, prediction, base_url=ollama_url, model=ollama_model
+                    user_input,
+                    prediction,
+                    backend=llm_backend,
+                    base_url=ollama_url,
+                    model=ollama_model,
                 )
                 console.print(
                     Panel(
@@ -164,19 +176,32 @@ def analyze(
                         border_style="green",
                     )
                 )
+            except ValueError as e:
+                # API key missing
+                console.print(f"[bold red][{llm_backend.upper()}] Configuration Error[/bold red]")
+                console.print(f"[yellow]{e}[/yellow]")
             except ConnectionError:
-                console.print("[bold red][Ollama] Connection Error[/bold red]")
-                console.print(
-                    f"[yellow]Cannot connect to Ollama at {ollama_url}[/yellow]"
-                )
-                console.print(
-                    "[yellow]Make sure Ollama is running: ollama serve[/yellow]"
-                )
+                console.print(f"[bold red][{llm_backend.upper()}] Connection Error[/bold red]")
+                if llm_backend == "ollama":
+                    console.print(
+                        f"[yellow]Cannot connect to Ollama at {ollama_url}[/yellow]"
+                    )
+                    console.print(
+                        "[yellow]Make sure Ollama is running: ollama serve[/yellow]"
+                    )
+                else:
+                    console.print(
+                        f"[yellow]Cannot connect to {llm_backend} service[/yellow]"
+                    )
+                    console.print(
+                        f"[yellow]Check your {llm_backend.upper()}_API_KEY environment variable[/yellow]"
+                    )
             except Exception as e:
-                console.print(f"[bold red][Ollama] Error:[/bold red] {e}")
-                console.print(
-                    f"[yellow]Check '{ollama_model}' is installed: ollama list[/yellow]"
-                )
+                console.print(f"[bold red][{llm_backend.upper()}] Error:[/bold red] {e}")
+                if llm_backend == "ollama":
+                    console.print(
+                        f"[yellow]Check '{ollama_model}' is installed: ollama list[/yellow]"
+                    )
 
         console.print("\n" + "-" * 60 + "\n")
 

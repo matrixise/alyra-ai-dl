@@ -308,6 +308,159 @@ task app:chainlit:dev
 - ❌ `run-cli` - incorrect
 - ❌ `start-api` - incorrect
 
+## LLM Backend Configuration
+
+This project supports multiple LLM backends for generating clinical summaries from Bio_ClinicalBERT predictions.
+
+### Available Backends
+
+- **Ollama** (default): Local LLM server for privacy and offline use
+- **OpenAI**: Cloud-based GPT models (gpt-4, gpt-3.5-turbo)
+- **Lightning AI**: Lightning.ai hosted models (llama-3.3-70b)
+
+### Quick Start
+
+**CLI Usage:**
+```bash
+# Default (Ollama)
+task app:cli
+
+# Use OpenAI
+export OPENAI_API_KEY="sk-..."
+task app:cli -- --llm-backend openai
+
+# Use Lightning AI
+export LIGHTNING_API_KEY="your-key"
+task app:cli -- --llm-backend lightning
+```
+
+**Chainlit Usage:**
+```bash
+# Uses default backend from .env (ollama)
+task app:chainlit:dev
+```
+
+### Configuration
+
+**Environment Variables** (`.env`):
+```bash
+# Backend selection
+LLM_BACKEND=ollama  # or openai, lightning
+
+# Ollama settings (local)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3
+
+# OpenAI settings (cloud)
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4
+
+# Lightning AI settings (cloud)
+LIGHTNING_API_KEY=your-key
+LIGHTNING_MODEL=lightning-ai/llama-3.3-70b
+```
+
+**CLI Options:**
+- `--llm-backend`: Choose backend (ollama, openai, lightning)
+- `--no-llm`: Skip LLM entirely, BERT predictions only
+- `--ollama-url`: Custom Ollama server URL
+- `--ollama-model`: Custom Ollama model name
+
+### API Keys Security
+
+**⚠️ IMPORTANT:**
+- Never commit API keys to git
+- Store keys in `.env` file (already in `.gitignore`)
+- Use environment variables only
+- Lightning AI keys are project-specific
+
+**Setting API Keys:**
+```bash
+# Option 1: Export in shell session
+export OPENAI_API_KEY="sk-..."
+export LIGHTNING_API_KEY="..."
+
+# Option 2: Add to .env file (recommended)
+echo 'OPENAI_API_KEY=sk-...' >> .env
+echo 'LIGHTNING_API_KEY=...' >> .env
+```
+
+### Backend Comparison
+
+| Feature | Ollama | OpenAI | Lightning AI |
+|---------|--------|--------|--------------|
+| **Privacy** | ✅ Local | ❌ Cloud | ❌ Cloud |
+| **Cost** | ✅ Free | 💰 Pay-per-use | 💰 Pay-per-use |
+| **Setup** | Requires local install | API key only | API key only |
+| **Speed** | Depends on hardware | Fast | Fast |
+| **Models** | llama3, mistral, etc | gpt-4, gpt-3.5 | llama-3.3-70b |
+| **Offline** | ✅ Yes | ❌ No | ❌ No |
+
+### Troubleshooting
+
+**Ollama Connection Error:**
+```bash
+# Check Ollama is running
+ollama serve
+
+# List available models
+ollama list
+
+# Pull a model if needed
+ollama pull llama3
+```
+
+**OpenAI/Lightning API Key Error:**
+```bash
+# Verify key is set
+echo $OPENAI_API_KEY
+echo $LIGHTNING_API_KEY
+
+# Check .env file
+cat .env | grep API_KEY
+```
+
+**Wrong Model Error:**
+```bash
+# For Ollama, check installed models
+ollama list
+
+# For OpenAI/Lightning, verify model name in .env
+```
+
+### Programming with Multiple Backends
+
+**Python Example:**
+```python
+from apps.llm_processor import generate_response, LLMBackend
+
+# Use Ollama (default)
+response = generate_response(user_text, prediction)
+
+# Use OpenAI
+response = generate_response(
+    user_text,
+    prediction,
+    backend=LLMBackend.OPENAI
+)
+
+# Use Lightning AI
+response = generate_response(
+    user_text,
+    prediction,
+    backend=LLMBackend.LIGHTNING
+)
+
+# Custom configuration
+response = generate_response(
+    user_text,
+    prediction,
+    backend="ollama",
+    base_url="http://custom-server:11434",
+    model="mistral"
+)
+```
+
 ## Additional Notes
 
 - To add a new dependency for development: `task venv:add:dev -- DEPENDENCY`
