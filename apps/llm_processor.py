@@ -1,9 +1,9 @@
 """
-LLM processor for generating patient-friendly responses.
+LLM processor for generating clinical summaries for general practitioners.
 
 IMPORTANT: The LLM does NOT extract symptoms or make predictions.
 Bio_ClinicalBERT handles all symptom understanding and disease prediction.
-Ollama ONLY generates explanatory text for the patient.
+Ollama ONLY generates professional clinical summaries for healthcare professionals.
 """
 
 from langchain_core.prompts import PromptTemplate
@@ -21,27 +21,27 @@ def get_llm(
 
 
 RESPONSE_PROMPT = PromptTemplate.from_template("""
-You are a helpful medical assistant. Based on the AI analysis results below,
-provide a clear, empathetic response in English to the patient.
+You are a clinical decision support assistant for general practitioners.
+Based on the AI analysis results below, provide a professional clinical summary in English.
 
-Patient's description: {user_text}
+Clinical presentation: {user_text}
 
-AI Analysis - All possible conditions:
+AI Analysis - Differential diagnosis probabilities:
 {all_probs_text}
 
-Top prediction: {disease} ({confidence:.0%} confidence)
+Primary diagnosis: {disease} ({confidence:.0%} confidence)
 
 Guidelines:
-- Present ALL the possible conditions with their probabilities
-- Explain what the probabilities mean in simple terms
-- If the top confidence is low, emphasize the uncertainty
-- If the disease is "unknown", explain that the symptoms don't match known patterns
-- Always remind them this is not a medical diagnosis
-- Suggest consulting a healthcare professional
-- Be empathetic and reassuring
-- Keep the response concise and easy to understand
+- Present the differential diagnosis with all significant probabilities
+- Provide a clinical interpretation of the confidence levels
+- If confidence is low (<60%), emphasize the diagnostic uncertainty and suggest alternative approaches
+- If the disease is "unknown", indicate that the symptom pattern doesn't match the training dataset
+- Suggest relevant clinical examinations or diagnostic tests to confirm/rule out the top conditions
+- Highlight any red flags or urgent findings that warrant immediate attention
+- Maintain a professional, evidence-based tone
+- Keep the response concise and actionable for clinical decision-making
 
-Response:""")
+Clinical Summary:""")
 
 
 def generate_response(
@@ -51,10 +51,10 @@ def generate_response(
     model: str = DEFAULT_MODEL,
 ) -> str:
     """
-    Generate a patient-friendly response based on BERT prediction.
+    Generate a clinical summary for general practitioners based on BERT prediction.
 
     Args:
-        user_text: Original text from user
+        user_text: Original clinical presentation text
         prediction: Dict from DiseaseClassifier.predict() with keys:
                    - disease: predicted disease or "unknown"
                    - confidence: float 0-1
@@ -63,7 +63,7 @@ def generate_response(
         model: Ollama model name (default: llama3)
 
     Returns:
-        Human-friendly response string
+        Professional clinical summary string for practitioners
     """
     # Format all probabilities for the prompt (filter out < 1%)
     all_probs = prediction.get("all_probs", {})
