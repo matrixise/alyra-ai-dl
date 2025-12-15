@@ -295,7 +295,7 @@ def train(
         console.print(f"  {i}. {disease}")
 
     if device == "auto":
-        device = detect_device()
+        device = detect_device().value
     console.print(f"\n[yellow]Using device:[/yellow] {device}")
 
     # ========================================================================
