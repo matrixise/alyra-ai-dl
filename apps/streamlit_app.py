@@ -215,7 +215,7 @@ def main():
                 st.dataframe(
                     probs_df,
                     hide_index=True,
-                    use_container_width=True,
+                    width='stretch',
                 )
 
                 # Détails JSON
