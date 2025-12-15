@@ -18,7 +18,7 @@ from alyra_ai_dl import (
     detect_device,
     predict_with_threshold,
 )
-from llm_processor import generate_response
+from apps.llm_processor import generate_response
 
 # Load Bio_ClinicalBERT model at startup
 classifier = None
