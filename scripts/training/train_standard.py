@@ -455,7 +455,6 @@ def train(
         logging_steps=50,
         seed=seed,
         push_to_hub=False,
-        use_mps_device=True if device == "mps" else False,
     )
 
     # Create Trainer
