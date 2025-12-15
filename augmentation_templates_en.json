@@ -1,0 +1,11 @@
+{
+  "language": "en",
+  "templates": [
+    "Patient presents with {}",
+    "Presenting symptoms: {}",
+    "Clinical presentation: {}",
+    "Patient reports {}",
+    "Clinical findings: {}",
+    "{}"
+  ]
+}
