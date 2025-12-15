@@ -13,21 +13,17 @@ import random
 import warnings
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import torch
 import typer
 from datasets import Dataset as HFDataset
 from datasets import DatasetDict
 from rich.console import Console
-from rich.progress import Progress
 from rich.table import Table
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
-    confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
@@ -40,6 +36,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+from visualization import save_confusion_matrix
 
 warnings.filterwarnings("ignore")
 
@@ -152,32 +150,6 @@ def compute_metrics(eval_pred):
         "precision_macro": precision_score(labels, predictions, average="macro"),
         "recall_macro": recall_score(labels, predictions, average="macro"),
     }
-
-
-def save_confusion_matrix(
-    y_true: np.ndarray,
-    y_pred: np.ndarray,
-    target_names: list,
-    output_path: Path,
-):
-    """Save confusion matrix as PNG."""
-    cm = confusion_matrix(y_true, y_pred)
-
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(
-        cm,
-        annot=True,
-        fmt="d",
-        cmap="Blues",
-        xticklabels=target_names,
-        yticklabels=target_names,
-    )
-    plt.title("Confusion Matrix")
-    plt.xlabel("Predicted")
-    plt.ylabel("Actual")
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches="tight")
-    plt.close()
 
 
 # ============================================================================
