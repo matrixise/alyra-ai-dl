@@ -34,6 +34,7 @@ dev = [
     "kaleido>=1.2.0",
     "lightning-sdk>=2025.12.9",
     "packaging>=25.0",
+    "pandas-stubs>=2.3.3.251201",
     "pip>=25.3",
     "plotly>=6.5.0",
     "ruff>=0.14.8",
