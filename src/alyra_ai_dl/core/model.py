@@ -6,7 +6,7 @@ from transformers import pipeline
 
 from alyra_ai_dl.core.device import DeviceEnum, detect_device
 
-DEFAULT_MODEL_PATH = pathlib.Path("./models/symptom_classifier-mini/final")
+DEFAULT_MODEL_PATH = pathlib.Path("./models/symptom_classifier-old-trainer/final/")
 
 
 def create_classifier(
