@@ -28,6 +28,69 @@ DEFAULT_LIGHTNING_URL = "https://lightning.ai/api/v1/"
 DEFAULT_LIGHTNING_MODEL = "lightning-ai/llama-3.3-70b"
 
 
+def get_ollama_config(
+    base_url: str | None = None,
+    model: str | None = None,
+) -> dict:
+    """
+    Get Ollama configuration from environment or parameters.
+
+    Args:
+        base_url: Override for Ollama URL
+        model: Override for model name
+
+    Returns:
+        Dict with 'base_url' and 'model' keys
+
+    Environment Variables:
+        - OLLAMA_BASE_URL: Ollama server URL
+        - OLLAMA_MODEL: Ollama model name
+    """
+    return {
+        "base_url": base_url or os.getenv("OLLAMA_BASE_URL", DEFAULT_OLLAMA_URL),
+        "model": model or os.getenv("OLLAMA_MODEL", DEFAULT_OLLAMA_MODEL),
+    }
+
+
+def get_lightning_config(
+    base_url: str | None = None,
+    model: str | None = None,
+    api_key: str | None = None,
+) -> dict:
+    """
+    Get Lightning AI configuration from environment or parameters.
+
+    Args:
+        base_url: Override for API URL
+        model: Override for model name
+        api_key: Override for API key
+
+    Returns:
+        Dict with 'base_url', 'model', and 'api_key' keys
+
+    Raises:
+        ValueError: If no API key is provided or found in environment
+
+    Environment Variables:
+        - LIGHTNING_BASE_URL: Lightning AI API URL
+        - LIGHTNING_MODEL: Lightning AI model name
+        - LIGHTNING_API_KEY: Lightning AI API key (required)
+    """
+    key = api_key or os.getenv("LIGHTNING_API_KEY")
+
+    if not key:
+        raise ValueError(
+            "Lightning AI backend requires an API key. "
+            "Set LIGHTNING_API_KEY environment variable or pass api_key parameter."
+        )
+
+    return {
+        "base_url": os.getenv("LIGHTNING_BASE_URL", DEFAULT_LIGHTNING_URL),
+        "model": os.getenv("LIGHTNING_MODEL", DEFAULT_LIGHTNING_MODEL),
+        "api_key": key,
+    }
+
+
 class LLMBackend(StrEnum):
     """Supported LLM backends."""
 
@@ -44,48 +107,52 @@ def get_llm(
     """
     Create an LLM instance with the specified backend and configuration.
 
+    Configuration is read from environment variables if not provided.
+
     Args:
         backend: LLM backend to use ("ollama" or "lightning")
-        base_url: Base URL for the API (uses backend defaults if None)
-        model: Model name (uses backend defaults if None)
-        api_key: API key for OpenAI/Lightning (reads from env if None)
+        base_url: Base URL for the API (uses env or defaults if None)
+        model: Model name (uses env or defaults if None)
+        api_key: API key for Lightning (uses env if None)
 
     Returns:
-        LLM instance compatible with LangChain (BaseLanguageModel)
+        LLM instance compatible with LangChain
 
     Raises:
-        ValueError: If OpenAI/Lightning backend is used without API key
+        ValueError: If Lightning backend is used without API key
+
+    Environment Variables:
+        - OLLAMA_BASE_URL: Ollama server URL
+        - OLLAMA_MODEL: Ollama model name
+        - LIGHTNING_BASE_URL: Lightning AI API URL
+        - LIGHTNING_MODEL: Lightning AI model name
+        - LIGHTNING_API_KEY: Lightning AI API key (required)
 
     Examples:
-        >>> # Use local Ollama (default)
+        >>> # Use Ollama with defaults from environment
         >>> llm = get_llm()
+
         >>> # Use Lightning AI
         >>> llm = get_llm(backend="lightning")
+
+        >>> # Override configuration
+        >>> llm = get_llm(backend="ollama", base_url="http://custom:11434")
     """
     backend = LLMBackend(backend) if isinstance(backend, str) else backend
 
     if backend == LLMBackend.OLLAMA:
-        # Ollama configuration
-        url = base_url or DEFAULT_OLLAMA_URL
-        model_name = model or DEFAULT_OLLAMA_MODEL
-        return OllamaLLM(model=model_name, base_url=url)
+        config = get_ollama_config(base_url, model)
+        return OllamaLLM(
+            model=config["model"],
+            base_url=config["base_url"]
+        )
 
     elif backend == LLMBackend.LIGHTNING:
-        # Lightning AI configuration
-        url = base_url or DEFAULT_LIGHTNING_URL
-        model_name = model or DEFAULT_LIGHTNING_MODEL
-        key = api_key or os.getenv("LIGHTNING_API_KEY")
-
-        if not key:
-            raise ValueError(
-                "Lightning AI backend requires an API key. "
-                "Set LIGHTNING_API_KEY environment variable or pass api_key parameter."
-            )
-
+        config = get_lightning_config(base_url, model, api_key)
         return ChatOpenAI(
-            model=model_name,
-            api_key=key,
-            base_url=url,
+            model=config["model"],
+            api_key=config["api_key"],
+            base_url=config["base_url"]
         )
 
     else:

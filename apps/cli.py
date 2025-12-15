@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """
-Simple CLI to test Bio_ClinicalBERT + Ollama interaction.
+Simple CLI for clinical decision support using Bio_ClinicalBERT.
 
 Usage:
-    python apps/cli.py
+    python apps/cli.py                              # BERT only (default)
+    python apps/cli.py --llm                        # BERT + LLM summary
+    python apps/cli.py --llm --llm-backend lightning
     python apps/cli.py --model models/my-model
-    python apps/cli.py --no-llm
     python apps/cli.py --threshold 0.7
 
 Architecture:
-    User input -> Bio_ClinicalBERT (prediction) -> Ollama (explanation)
+    User input -> Bio_ClinicalBERT (prediction) -> [Optional] LLM (clinical summary)
 """
 
+import os
 from pathlib import Path
 from typing import Annotated
 
@@ -48,16 +50,16 @@ def analyze(
         float,
         typer.Option("--threshold", "-t", help="Confidence threshold (0.0-1.0)"),
     ] = 0.55,
-    no_llm: Annotated[
+    use_llm: Annotated[
         bool,
-        typer.Option("--no-llm", help="Skip LLM response generation (BERT only)"),
+        typer.Option("--llm", help="Enable LLM clinical summary generation"),
     ] = False,
     llm_backend: Annotated[
         str,
         typer.Option(
-            "--llm-backend", help="LLM backend to use (ollama, openai, lightning)"
+            "--llm-backend", help="LLM backend to use (ollama, lightning)"
         ),
-    ] = "ollama",
+    ] = os.getenv("LLM_BACKEND", "ollama"),
     ollama_url: Annotated[
         str,
         typer.Option("--ollama-url", "-u", help="Ollama server URL"),
@@ -67,7 +69,7 @@ def analyze(
         typer.Option("--ollama-model", help="Ollama model name"),
     ] = "llama3",
 ):
-    """Interactive symptom analyzer using Bio_ClinicalBERT + Ollama."""
+    """Interactive clinical decision support using Bio_ClinicalBERT (optional LLM)."""
     # Load model
     console.print("[bold blue]Loading Bio_ClinicalBERT model...[/bold blue]")
 
@@ -157,7 +159,7 @@ def analyze(
             console.print(prob_table)
 
         # Step 2: LLM response (optional)
-        if not no_llm:
+        if use_llm:
             console.print(
                 f"\n[bold cyan][{llm_backend.upper()}][/bold cyan] Generating response..."
             )
