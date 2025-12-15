@@ -252,6 +252,62 @@ task code:fix          # Auto-fix all issues
   }
 }
 ```
+## Applications
+
+This project includes four user-facing applications:
+
+### Quick Commands
+
+```bash
+# CLI - Interactive terminal interface
+task app:cli
+
+# API - FastAPI REST server
+task app:api:dev
+
+# Streamlit - Web UI with visualizations
+task app:streamlit:dev
+
+# Chainlit - Chat interface with LLM
+task app:chainlit:dev
+```
+
+### Application Details
+
+**CLI** (`apps/cli.py`):
+- Interactive REPL for symptom analysis
+- BERT predictions + optional Ollama explanations
+- Rich terminal output
+- Usage: `task app:cli` or `python -m apps.cli`
+
+**API** (`apps/api.py`):
+- FastAPI REST service
+- Endpoints: `/predict`, `/predict/batch`, `/health`, `/info`
+- Interactive docs at http://localhost:8000/docs
+- Usage: `task app:api:dev`
+
+**Streamlit** (`apps/streamlit_app.py`):
+- Web-based UI with charts and tables
+- Model configuration interface
+- Access at http://localhost:8501
+- Usage: `task app:streamlit:dev`
+
+**Chainlit** (`apps/chainlit_app.py`):
+- Chat-based interface
+- BERT predictions + Ollama LLM explanations
+- Step-by-step analysis display
+- Usage: `task app:chainlit:dev`
+
+### Task Naming for Applications
+
+**Application tasks** → `app:` prefix:
+- ✅ `app:cli` - CLI interface
+- ✅ `app:api:dev` - API development server
+- ✅ `app:streamlit:dev` - Streamlit development server
+- ✅ `app:chainlit:dev` - Chainlit chat interface
+- ❌ `run-cli` - incorrect
+- ❌ `start-api` - incorrect
+
 ## Additional Notes
 
 - To add a new dependency for development: `task venv:add:dev -- DEPENDENCY`
