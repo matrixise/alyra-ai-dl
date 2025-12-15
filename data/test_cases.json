@@ -1,0 +1,50 @@
+[
+  {
+    "disease": "spondylolisthesis",
+    "symptoms": "low back pain, problems with movement, paresthesia, leg cramps or spasms, leg weakness"
+  },
+  {
+    "disease": "spondylolisthesis",
+    "symptoms": "hip pain, back pain, neck pain, low back pain, problems with movement, loss of sensation, leg cramps or spasms"
+  },
+  {
+    "disease": "spondylolisthesis",
+    "symptoms": "leg pain, back pain, neck pain, problems with movement, loss of sensation, paresthesia, leg cramps or spasms"
+  },
+  {
+    "disease": "spondylolisthesis",
+    "symptoms": "leg pain, hip pain, neck pain, problems with movement, paresthesia, leg weakness"
+  },
+  {
+    "disease": "herniated disk",
+    "symptoms": "arm pain, back pain, neck pain, paresthesia, shoulder pain, arm weakness"
+  },
+  {
+    "disease": "herniated disk",
+    "symptoms": "hip pain, back pain, low back pain, loss of sensation, paresthesia, shoulder pain, leg weakness"
+  },
+  {
+    "disease": "herniated disk",
+    "symptoms": "loss of sensation, paresthesia, shoulder pain"
+  },
+  {
+    "disease": "herniated disk",
+    "symptoms": "hip pain, arm pain, back pain, low back pain, loss of sensation, paresthesia, leg weakness"
+  },
+  {
+    "disease": "panic disorder",
+    "symptoms": "depressive or psychotic symptoms, irregular heartbeat, breathing fast"
+  },
+  {
+    "disease": "panic disorder",
+    "symptoms": "insomnia, palpitations, irregular heartbeat"
+  },
+  {
+    "disease": "panic disorder",
+    "symptoms": "depression, shortness of breath, depressive or psychotic symptoms, dizziness, insomnia, abnormal involuntary movements, irregular heartbeat"
+  },
+  {
+    "disease": "panic disorder",
+    "symptoms": "depression, depressive or psychotic symptoms, insomnia, abnormal involuntary movements, chest tightness, palpitations"
+  }
+]
