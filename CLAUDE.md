@@ -311,3 +311,4 @@ task app:chainlit:dev
 ## Additional Notes
 
 - To add a new dependency for development: `task venv:add:dev -- DEPENDENCY`
+- All issues I create must be written in French, as well as comments
