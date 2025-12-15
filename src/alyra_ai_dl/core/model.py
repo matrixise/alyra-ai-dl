@@ -1,12 +1,20 @@
 """Model loading and configuration utilities."""
 
+import os
 import pathlib
 
+from dotenv import load_dotenv
 from transformers import pipeline
 
 from alyra_ai_dl.core.device import DeviceEnum, detect_device
 
-DEFAULT_MODEL_PATH = pathlib.Path("./models/symptom_classifier-old-trainer/final/")
+# Load environment variables from .env file
+load_dotenv()
+
+# Get model path from environment variable or use default
+DEFAULT_MODEL_PATH = pathlib.Path(
+    os.getenv("MODEL_PATH", "./models/symptom_classifier-old-trainer/final/")
+)
 
 
 def create_classifier(

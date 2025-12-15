@@ -53,9 +53,37 @@ This installs the project in editable mode with all dev dependencies.
 - **[Task](https://taskfile.dev/)**: Modern task runner (replaces Makefile)
 - **[asdf](https://asdf-vm.com/)**: Version manager for Python and CLI tools
 
+## Configuration
+
+### Environment Variables
+
+The project supports configuration via environment variables using a `.env` file.
+
+**Setup:**
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` to customize settings:
+   ```bash
+   # Model path configuration
+   MODEL_PATH=./models/symptom_classifier-mini/final/
+   ```
+
+**Available Variables:**
+
+- `MODEL_PATH` - Path to the trained model directory (default: `./models/symptom_classifier-old-trainer/final/`)
+
 ## Models
 
-The project uses **Bio_ClinicalBERT** fine-tuned for disease classification from symptom descriptions. The default model path is `models/symptom_classifier-mini/final`.
+The project uses **Bio_ClinicalBERT** fine-tuned for disease classification from symptom descriptions.
+
+**Model Path Configuration:**
+- The model path can be configured via the `MODEL_PATH` environment variable in `.env`
+- Default: `models/symptom_classifier-old-trainer/final/`
+- Alternative models: `models/symptom_classifier-mini/final/`
 
 ### Model Features
 - Multi-class disease classification
@@ -65,7 +93,7 @@ The project uses **Bio_ClinicalBERT** fine-tuned for disease classification from
 
 ## Applications
 
-The project includes three application interfaces:
+The project includes four application interfaces:
 
 ### 1. CLI (Command-Line Interface)
 
@@ -126,6 +154,25 @@ streamlit run apps/streamlit_app.py
 - Probability visualizations (charts, tables)
 - Adjustable confidence threshold
 - Real-time predictions
+
+### 4. Chainlit (Chat Interface)
+
+Interactive chat interface with step-by-step analysis:
+
+```bash
+# Run Chainlit
+task app:chainlit:dev
+
+# Or directly
+chainlit run apps/chainlit_app.py
+```
+
+**Features:**
+- Chat-based conversational interface
+- Step-by-step analysis visualization
+- Bio_ClinicalBERT predictions
+- Ollama LLM explanations
+- Medical disclaimer and guidance
 
 ## Examples
 
