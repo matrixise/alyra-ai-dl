@@ -5,6 +5,7 @@ Cette application utilise un modèle transformers pré-entraîné pour prédire
 les maladies potentielles basées sur une liste de symptômes fournis par l'utilisateur.
 """
 
+import os
 import pathlib
 
 import pandas as pd
@@ -12,6 +13,7 @@ import streamlit as st
 
 from alyra_ai_dl.core import DEFAULT_MODEL_PATH, create_classifier, detect_device
 from alyra_ai_dl.inference import predict_with_threshold
+from llm_processor import generate_response
 
 
 @st.cache_resource
@@ -75,6 +77,37 @@ def main():
             step=0.05,
             help="Score de confiance minimum pour considérer une prédiction valide",
         )
+
+        st.divider()
+
+        # Configuration LLM
+        st.header("🤖 Résumé Clinique LLM")
+
+        use_llm = st.checkbox(
+            "Activer le résumé LLM",
+            value=False,
+            help="Générer un résumé clinique professionnel avec un LLM"
+        )
+
+        if use_llm:
+            llm_backend = st.selectbox(
+                "Backend LLM",
+                options=["ollama", "lightning"],
+                index=0 if os.getenv("LLM_BACKEND", "ollama") == "ollama" else 1,
+                help="Choisir le backend LLM à utiliser"
+            )
+
+            if llm_backend == "ollama":
+                ollama_url = st.text_input(
+                    "URL Ollama",
+                    value=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+                    help="URL du serveur Ollama"
+                )
+                ollama_model = st.text_input(
+                    "Modèle Ollama",
+                    value=os.getenv("OLLAMA_MODEL", "llama3"),
+                    help="Nom du modèle Ollama à utiliser"
+                )
 
         st.divider()
 
@@ -189,17 +222,56 @@ def main():
                 with st.expander("🔍 Voir les Résultats Bruts"):
                     st.json(result)
 
+                # Résumé clinique LLM (si activé)
+                if use_llm:
+                    st.divider()
+                    st.subheader("🤖 Résumé Clinique Professionnel")
+
+                    with st.spinner(f"Génération du résumé avec {llm_backend.upper()}..."):
+                        try:
+                            # Préparer les paramètres selon le backend
+                            if llm_backend == "ollama":
+                                llm_response = generate_response(
+                                    symptoms,
+                                    result,
+                                    backend=llm_backend,
+                                    base_url=ollama_url,
+                                    model=ollama_model,
+                                )
+                            else:  # lightning
+                                llm_response = generate_response(
+                                    symptoms,
+                                    result,
+                                    backend=llm_backend,
+                                )
+
+                            # Afficher le résumé dans une boîte stylisée
+                            st.info(llm_response)
+
+                        except ValueError as e:
+                            st.error(f"❌ Erreur de configuration {llm_backend.upper()}: {e}")
+                            st.info("💡 Vérifiez votre configuration LLM dans la sidebar")
+                        except ConnectionError as e:
+                            st.error(f"❌ Impossible de se connecter à {llm_backend.upper()}")
+                            if llm_backend == "ollama":
+                                st.info(f"💡 Assurez-vous qu'Ollama est démarré: `ollama serve`")
+                            else:
+                                st.info(f"💡 Vérifiez votre clé API {llm_backend.upper()}")
+                        except Exception as e:
+                            st.error(f"❌ Erreur LLM: {e}")
+                            st.exception(e)
+
             except Exception as e:
                 st.error(f"❌ Erreur lors de la prédiction: {e}")
                 st.exception(e)
 
     # Footer
     st.divider()
-    st.caption(
-        "🤖 Propulsé par Transformers Pipeline | "
-        "Créé avec Streamlit | "
-        f"Modèle: {model_path}"
-    )
+    footer_text = "🤖 Propulsé par DiagnosIA"
+    if use_llm:
+        footer_text += f" + {llm_backend.upper()} LLM"
+    footer_text += f" | Créé avec Streamlit | Modèle: {model_path}"
+    st.caption(footer_text)
 
 
 if __name__ == "__main__":
