@@ -313,6 +313,40 @@ tasks:
     cmds:
       - "{{.PYTHON_BIN}}/chainlit run apps/chainlit_app.py"
 
+  demo:cli:record:
+    desc: "Record CLI demo with asciinema"
+    deps: [venv:init]
+    vars:
+      OUTPUT_FILE: '{{.CLI_ARGS | default "alyra-ai-dl-cli"}}'
+    cmds:
+      - asciinema rec {{.OUTPUT_FILE}} -c "task app:cli -- --llm --llm-backend=lightning"
+
+  demo:cli:gif:
+    desc: "Convert asciinema recording to GIF"
+    vars:
+      INPUT_FILE: '{{.CLI_ARGS | default "alyra-ai-dl-cli"}}'
+    cmds:
+      - agg {{.INPUT_FILE}} {{.INPUT_FILE}}.gif
+
+  demo:cli:mp4:
+    desc: "Convert GIF to MP4 with ffmpeg"
+    vars:
+      INPUT_FILE: '{{.CLI_ARGS | default "alyra-ai-dl-cli"}}'
+    cmds:
+      - ffmpeg -i {{.INPUT_FILE}}.gif {{.INPUT_FILE}}.mp4
+
+  demo:cli:all:
+    desc: "Record CLI demo and convert to GIF and MP4"
+    vars:
+      OUTPUT_FILE: '{{.CLI_ARGS | default "alyra-ai-dl-cli"}}'
+    cmds:
+      - task: demo:cli:record
+        vars: {OUTPUT_FILE: "{{.OUTPUT_FILE}}"}
+      - task: demo:cli:gif
+        vars: {INPUT_FILE: "{{.OUTPUT_FILE}}"}
+      - task: demo:cli:mp4
+        vars: {INPUT_FILE: "{{.OUTPUT_FILE}}"}
+
   lightning:studio:download:model:
     desc: "Download models from Lightning Studio"
     deps: [venv:init]
