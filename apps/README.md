@@ -4,6 +4,15 @@ This directory contains user-facing applications using the alyra_ai_dl package.
 
 ## Available Apps
 
+### Task Commands (Quick Start)
+
+```bash
+task app:cli              # CLI interactive terminal
+task app:api:dev          # FastAPI REST server
+task app:streamlit:dev    # Streamlit web UI
+task app:chainlit:dev     # Chainlit chat interface
+```
+
 ### 1. CLI - Interactive Terminal Interface
 
 **File:** `cli.py`
@@ -117,6 +126,55 @@ task app:streamlit:dev
 
 ---
 
+### 4. Chainlit - Chat Interface
+
+**File:** `chainlit_app.py`
+**Description:** Interactive chat-based interface for symptom analysis with step-by-step visualization.
+
+**Usage:**
+
+```bash
+# Start Chainlit app
+chainlit run apps/chainlit_app.py
+
+# Or with task
+task app:chainlit:dev
+```
+
+**Features:**
+
+- Chat-based conversational interface
+- Step-by-step analysis visualization
+- Bio_ClinicalBERT predictions with confidence scores
+- Ollama LLM patient-friendly explanations
+- Technical details display (disease, confidence, suggestions)
+- Medical disclaimer and guidance
+
+**Requirements:**
+
+- Ollama running locally (`ollama serve`) for LLM explanations
+- Default model at `DEFAULT_MODEL_PATH` or configured model
+- Chainlit installed (`pip install chainlit` or via `pyproject.toml`)
+
+**Access:**
+
+- Default URL: http://localhost:8000 (Chainlit default port)
+- Configuration: `.chainlit/config.toml`
+
+**Example Interaction:**
+
+```
+User: I have rapid heartbeat, sweating, trembling, shortness of breath
+
+[BERT Analysis]
+Predicted: panic disorder (86.1%)
+
+[Ollama Response]
+Based on your symptoms, the analysis suggests...
+```
+
+---
+
 ## Shared Components
 
 ### LLM Processor
@@ -149,6 +207,7 @@ Additional dependencies:
 - **CLI:** typer, rich, langchain-core, langchain-ollama
 - **API:** fastapi, uvicorn, pydantic-settings
 - **Streamlit:** streamlit
+- **Chainlit:** chainlit, langchain-core, langchain-ollama
 
 ---
 
@@ -177,13 +236,20 @@ Make sure you have a trained model available:
 
 ```bash
 # CLI
-python apps/cli.py
+task app:cli
+# or: python -m apps.cli
 
 # API
-python apps/api.py
+task app:api:dev
+# or: python apps/api.py
 
 # Streamlit
-streamlit run apps/streamlit_app.py
+task app:streamlit:dev
+# or: streamlit run apps/streamlit_app.py
+
+# Chainlit
+task app:chainlit:dev
+# or: chainlit run apps/chainlit_app.py
 ```
 
 ### 4. (Optional) Setup Ollama for LLM Features

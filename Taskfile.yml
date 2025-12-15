@@ -289,6 +289,12 @@ tasks:
     cmds:
       - "{{.PYTHON_BIN}}/python scripts/data/prepare_dataset.py --input {{.INPUT_FILE}} --output {{.OUTPUT_FILE}} --diseases '{{.DISEASES}}' {{.CLI_ARGS}}"
 
+  app:cli:
+    desc: "Start CLI symptom analyzer"
+    deps: [venv:init]
+    cmds:
+      - "{{.PYTHON_BIN}}/python -m apps.cli {{.CLI_ARGS}}"
+
   app:api:dev:
     desc: "Start FastAPI development server"
     deps: [venv:init]
