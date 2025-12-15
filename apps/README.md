@@ -13,16 +13,64 @@ task app:streamlit:dev    # Streamlit web UI
 task app:chainlit:dev     # Chainlit chat interface
 ```
 
+---
+
+## Environment Configuration
+
+### LLM Backend Configuration (Required for CLI and Chainlit)
+
+Applications that use LLM features (CLI, Chainlit) **require** LLM backend configuration via environment variables.
+
+**Configure in `.env` file:**
+
+```bash
+# LLM Backend Selection (REQUIRED)
+LLM_BACKEND=lightning  # Options: ollama, lightning
+
+# Lightning AI Configuration (if using lightning backend)
+LIGHTNING_API_KEY=your-api-key-here
+
+# Ollama Configuration (if using ollama backend)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3
+```
+
+**Available Backends:**
+
+1. **Ollama (local)** - Free, runs locally
+   - Requires: Ollama server running (`ollama serve`)
+   - Set: `LLM_BACKEND=ollama`
+
+2. **Lightning AI (cloud)** - Hosted service
+   - Requires: `LIGHTNING_API_KEY` environment variable
+   - Set: `LLM_BACKEND=lightning`
+
+**⚠️ Important:** Without proper LLM configuration, applications will fail or run in BERT-only mode (no clinical summaries).
+
+**CLI Override:**
+
+```bash
+# Use specific backend for CLI
+task app:cli -- --llm-backend lightning
+task app:cli -- --llm-backend ollama
+```
+
+---
+
 ### 1. CLI - Interactive Terminal Interface
 
 **File:** `cli.py`
-**Description:** Interactive command-line interface for symptom analysis with optional Ollama LLM explanations.
+**Description:** Interactive command-line interface for clinical decision support with optional LLM explanations.
 
 **Usage:**
 
 ```bash
-# Basic usage (default model and settings)
+# Basic usage (requires LLM_BACKEND environment variable)
 python apps/cli.py
+
+# Specify LLM backend explicitly
+python apps/cli.py --llm-backend lightning
+python apps/cli.py --llm-backend ollama
 
 # Custom model
 python apps/cli.py --model ./models/my-model
@@ -34,7 +82,7 @@ python apps/cli.py --threshold 0.7
 python apps/cli.py --no-llm
 
 # Custom Ollama configuration
-python apps/cli.py --ollama-url http://192.168.1.100:11434 --ollama-model llama2
+python apps/cli.py --llm-backend ollama --ollama-url http://192.168.1.100:11434 --ollama-model llama2
 ```
 
 **Features:**
@@ -55,7 +103,8 @@ python apps/cli.py --ollama-url http://192.168.1.100:11434 --ollama-model llama2
 
 - `--model`, `-m` - Path to the trained model (default: `models/symptom_classifier-mini/final`)
 - `--threshold`, `-t` - Confidence threshold 0.0-1.0 (default: 0.55)
-- `--no-llm` - Skip Ollama response generation (BERT only mode)
+- `--llm-backend` - LLM backend to use: `ollama`, `lightning` (default: from `LLM_BACKEND` env var)
+- `--no-llm` - Skip LLM response generation (BERT only mode)
 - `--ollama-url`, `-u` - Ollama server URL (default: `http://localhost:11434`)
 - `--ollama-model` - Ollama model name (default: `llama3`)
 
@@ -129,7 +178,7 @@ task app:streamlit:dev
 ### 4. Chainlit - Chat Interface
 
 **File:** `chainlit_app.py`
-**Description:** Interactive chat-based interface for symptom analysis with step-by-step visualization.
+**Description:** Interactive chat-based interface for clinical decision support with step-by-step visualization.
 
 **Usage:**
 
@@ -143,17 +192,19 @@ task app:chainlit:dev
 
 **Features:**
 
-- Chat-based conversational interface
+- Chat-based conversational interface for general practitioners
 - Step-by-step analysis visualization
 - Bio_ClinicalBERT predictions with confidence scores
-- Ollama LLM patient-friendly explanations
+- LLM-generated professional clinical summaries
+- Differential diagnosis with probabilities
 - Technical details display (disease, confidence, suggestions)
-- Medical disclaimer and guidance
 
 **Requirements:**
 
-- Ollama running locally (`ollama serve`) for LLM explanations
-- Default model at `DEFAULT_MODEL_PATH` or configured model
+- **LLM Backend Configuration (REQUIRED)** - See [Environment Configuration](#environment-configuration)
+  - Set `LLM_BACKEND` environment variable (ollama or lightning)
+  - Configure API keys or Ollama server accordingly
+- Bio_ClinicalBERT model at `DEFAULT_MODEL_PATH` or configured model
 - Chainlit installed (`pip install chainlit` or via `pyproject.toml`)
 
 **Access:**
@@ -180,18 +231,23 @@ Based on your symptoms, the analysis suggests...
 ### LLM Processor
 
 **File:** `llm_processor.py`
-**Description:** Ollama integration for generating patient-friendly medical explanations in English.
+**Description:** Multi-backend LLM integration for generating professional clinical summaries in English.
+
+**Supported Backends:**
+- **Ollama** (local) - Free, requires local Ollama server
+- **Lightning AI** (cloud) - Hosted service, requires API key
 
 **Functions:**
 
-- `generate_response(user_text, prediction, base_url, model)` - Generate explanation from prediction
+- `generate_response(user_text, prediction, backend, base_url, model)` - Generate clinical summary from BERT prediction
 
-**Requirements:**
+**Configuration:**
 
-- Ollama server running (`ollama serve`)
-- LLM model installed (`ollama pull llama3`)
+- **REQUIRED:** Set `LLM_BACKEND` environment variable (see [Environment Configuration](#environment-configuration))
+- **Lightning AI:** Requires `LIGHTNING_API_KEY` environment variable
+- **Ollama:** Requires Ollama server running (`ollama serve`) and model installed (`ollama pull llama3`)
 
-**Note:** The LLM does NOT make medical predictions. It only generates explanatory text based on Bio_ClinicalBERT predictions.
+**Note:** The LLM does NOT make medical predictions. It only generates professional clinical summaries based on Bio_ClinicalBERT predictions for general practitioners.
 
 ---
 
