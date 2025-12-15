@@ -9,7 +9,7 @@ Supports multiple LLM backends: Ollama (local), OpenAI, and Lightning AI.
 """
 
 import os
-from enum import Enum
+from enum import StrEnum
 
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.prompts import PromptTemplate
@@ -28,11 +28,10 @@ DEFAULT_LIGHTNING_URL = "https://lightning.ai/api/v1/"
 DEFAULT_LIGHTNING_MODEL = "lightning-ai/llama-3.3-70b"
 
 
-class LLMBackend(str, Enum):
+class LLMBackend(StrEnum):
     """Supported LLM backends."""
 
     OLLAMA = "ollama"
-    OPENAI = "openai"
     LIGHTNING = "lightning"
 
 
@@ -46,7 +45,7 @@ def get_llm(
     Create an LLM instance with the specified backend and configuration.
 
     Args:
-        backend: LLM backend to use ("ollama", "openai", or "lightning")
+        backend: LLM backend to use ("ollama" or "lightning")
         base_url: Base URL for the API (uses backend defaults if None)
         model: Model name (uses backend defaults if None)
         api_key: API key for OpenAI/Lightning (reads from env if None)
@@ -60,8 +59,6 @@ def get_llm(
     Examples:
         >>> # Use local Ollama (default)
         >>> llm = get_llm()
-        >>> # Use OpenAI
-        >>> llm = get_llm(backend="openai")
         >>> # Use Lightning AI
         >>> llm = get_llm(backend="lightning")
     """
@@ -72,23 +69,6 @@ def get_llm(
         url = base_url or DEFAULT_OLLAMA_URL
         model_name = model or DEFAULT_OLLAMA_MODEL
         return OllamaLLM(model=model_name, base_url=url)
-
-    elif backend == LLMBackend.OPENAI:
-        # OpenAI configuration
-        model_name = model or DEFAULT_OPENAI_MODEL
-        key = api_key or os.getenv("OPENAI_API_KEY")
-
-        if not key:
-            raise ValueError(
-                "OpenAI backend requires an API key. "
-                "Set OPENAI_API_KEY environment variable or pass api_key parameter."
-            )
-
-        return ChatOpenAI(
-            model=model_name,
-            api_key=key,
-            base_url=base_url,  # Allow custom OpenAI-compatible endpoints
-        )
 
     elif backend == LLMBackend.LIGHTNING:
         # Lightning AI configuration
@@ -103,9 +83,9 @@ def get_llm(
             )
 
         return ChatOpenAI(
-            base_url=url,
-            api_key=key,
             model=model_name,
+            api_key=key,
+            base_url=url,
         )
 
     else:
@@ -166,8 +146,6 @@ def generate_response(
     Examples:
         >>> # Use Ollama (default)
         >>> response = generate_response(text, prediction)
-        >>> # Use OpenAI
-        >>> response = generate_response(text, prediction, backend="openai")
         >>> # Use Lightning AI
         >>> response = generate_response(text, prediction, backend="lightning")
         >>> # Custom Ollama server
@@ -189,7 +167,7 @@ def generate_response(
 
     llm = get_llm(backend=backend, base_url=base_url, model=model)
     chain = RESPONSE_PROMPT | llm
-    return chain.invoke(
+    result = chain.invoke(
         {
             "user_text": user_text,
             "disease": prediction["disease"],
@@ -197,3 +175,9 @@ def generate_response(
             "all_probs_text": all_probs_text,
         }
     )
+
+    # ChatOpenAI returns AIMessage, OllamaLLM returns str
+    # Extract content if it's an AIMessage object
+    if hasattr(result, "content"):
+        return result.content
+    return result

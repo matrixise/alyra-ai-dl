@@ -3,12 +3,16 @@ Chainlit app for symptom-to-disease classification.
 
 Architecture:
 1. User text -> Bio_ClinicalBERT (prediction)
-2. Prediction -> Ollama (generate explanation)
+2. Prediction -> LLM (generate explanation)
 
 Run with: chainlit run apps/chainlit_app.py
+
+Configuration:
+- Set LLM_BACKEND env var to choose backend (ollama, openai, lightning)
+- Default: ollama
 """
 
-from pathlib import Path
+import os
 
 import chainlit as cl
 
@@ -18,7 +22,10 @@ from alyra_ai_dl import (
     detect_device,
     predict_with_threshold,
 )
-from apps.llm_processor import generate_response
+from llm_processor import generate_response
+
+# Load LLM backend configuration from environment
+LLM_BACKEND = os.getenv("LLM_BACKEND", "ollama")
 
 # Load Bio_ClinicalBERT model at startup
 classifier = None
@@ -31,7 +38,7 @@ async def start():
 
     # Load model if not already loaded
     if classifier is None:
-        await cl.Message(content="Loading Bio_ClinicalBERT model...").send()
+        await cl.Message(content="Loading DiagnosIA model...").send()
         device = detect_device()
         classifier = create_classifier(
             model_path=DEFAULT_MODEL_PATH,
@@ -40,9 +47,10 @@ async def start():
         )
 
     await cl.Message(
-        content="Hello! I'm a medical symptom analyzer. "
-        "Describe your symptoms and I'll try to help identify potential conditions.\n\n"
-        "**Disclaimer**: This is not medical advice. Always consult a doctor."
+        content="Hello! I'm a clinical decision support assistant for general practitioners. "
+        "Describe your patient's clinical presentation and I'll provide a differential diagnosis analysis.\n\n"
+        "**Important**: This is a decision support tool for healthcare professionals only. "
+        "All diagnoses must be validated through proper clinical examination."
     ).send()
 
 
@@ -52,15 +60,15 @@ async def main(message: cl.Message):
     user_text = message.content
 
     # Step 1: Bio_ClinicalBERT predicts disease from user text directly
-    async with cl.Step(name="Analyzing with Bio_ClinicalBERT...") as step:
+    async with cl.Step(name="Analyzing with DiagnosIA...") as step:
         prediction = predict_with_threshold(classifier, user_text, threshold=0.55)
         step.output = f"Predicted: {prediction['disease']} ({prediction['confidence']:.1%})"
 
     # Step 2: LLM generates patient-friendly explanation
-    async with cl.Step(name="Generating response...") as step:
+    async with cl.Step(name=f"Generating response with {LLM_BACKEND}...") as step:
         try:
-            response = generate_response(user_text, prediction)
-            step.output = "Response generated"
+            response = generate_response(user_text, prediction, backend=LLM_BACKEND)
+            step.output = f"Response generated using {LLM_BACKEND}"
         except ValueError as e:
             # API key missing
             response = f"⚠️ LLM unavailable: {e}\n\n**BERT Prediction Only:**\n"
