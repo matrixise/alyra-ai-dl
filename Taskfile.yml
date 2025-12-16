@@ -346,9 +346,3 @@ tasks:
         vars: {INPUT_FILE: "{{.OUTPUT_FILE}}"}
       - task: demo:cli:mp4
         vars: {INPUT_FILE: "{{.OUTPUT_FILE}}"}
-
-  lightning:studio:download:model:
-    desc: "Download models from Lightning Studio"
-    deps: [venv:init]
-    cmds:
-      - "{{.LIGHTNING}} download folder --studio tool-exploration-project/alyra-dl --local-path models/ models/"

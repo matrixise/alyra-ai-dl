@@ -3,9 +3,39 @@
 Script d'entraînement pour Bio_ClinicalBERT sur la classification de maladies.
 
 Usage:
-    .venv/bin/python diseases_dl/scripts/train_model.py "panic disorder,pneumonia,cystitis"
-    .venv/bin/python diseases_dl/scripts/train_model.py "anxiety,depression" --epochs 5 --augment
-    .venv/bin/python diseases_dl/scripts/train_model.py "trouble panique,pneumonie,cystite" --language fr
+    # Basic training with default parameters
+    .venv/bin/python scripts/training/train_model.py "panic disorder,pneumonia,cystitis"
+
+    # Training with custom epochs and learning rate
+    .venv/bin/python scripts/training/train_model.py "anxiety,depression" --epochs 10 --learning-rate 3e-5
+
+    # Training with data augmentation and templates
+    .venv/bin/python scripts/training/train_model.py "panic disorder,pneumonia" \
+        --augment --n-augmentations 5 \
+        --template-file config/augmentation_templates_fr_physician.json
+
+    # Training without augmentation
+    .venv/bin/python scripts/training/train_model.py "anxiety,cystitis" --no-augment
+
+    # Training with custom batch size and max length
+    .venv/bin/python scripts/training/train_model.py "herniated disk,spondylolisthesis" \
+        --batch-size 32 --max-length 256
+
+    # Training with confusion matrix visualization
+    .venv/bin/python scripts/training/train_model.py "panic disorder,anxiety,pneumonia" \
+        --save-confusion-matrix
+
+    # Full example with all 6 diseases and custom configuration
+    .venv/bin/python scripts/training/train_model.py \
+        "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis" \
+        --data-path data/prepared-dataset.csv \
+        --output-dir models/symptom_classifier \
+        --epochs 50 \
+        --batch-size 16 \
+        --learning-rate 2e-5 \
+        --augment \
+        --n-augmentations 3 \
+        --save-confusion-matrix
 """
 
 import json
@@ -433,7 +463,6 @@ def train(
         logging_steps=50,
         seed=seed,
         push_to_hub=False,
-        use_mps_device=True if device == "mps" else False,
     )
 
     # Create Trainer
