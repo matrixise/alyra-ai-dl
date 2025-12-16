@@ -209,3 +209,5 @@ __marimo__/
 .idea/
 .task/
 models/
+media/
+data/prepared-dataset.csv
