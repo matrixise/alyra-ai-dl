@@ -68,7 +68,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-from visualization import save_confusion_matrix
+
+from alyra_ai_dl.visualization import save_confusion_matrix
 
 warnings.filterwarnings("ignore")
 
@@ -189,60 +190,40 @@ def train(
     diseases: typing.Annotated[str, typer.Argument(help="Comma-separated list of diseases to classify")],
     data_path: typing.Annotated[
         pathlib.Path,
-        typer.Option(
-            DEFAULT_DATA_PATH,
-            "--data-path",
-            "-d",
-            help="Path to CSV file with diseases and symptoms",
-        ),
-    ],
+        typer.Option("--data-path", "-d", help="Path to CSV file with diseases and symptoms"),
+    ] = DEFAULT_DATA_PATH,
     output_dir: typing.Annotated[
         pathlib.Path,
-        typer.Option(
-            DEFAULT_OUTPUT_DIR,
-            "--output-dir",
-            "-o",
-            help="Directory to save trained model",
-        ),
-    ],
+        typer.Option("--output-dir", "-o", help="Directory to save trained model"),
+    ] = DEFAULT_OUTPUT_DIR,
     model_name: typing.Annotated[
         str,
-        typer.Option(
-            "emilyalsentzer/Bio_ClinicalBERT",
-            "--model-name",
-            "-m",
-            help="Pretrained model name from HuggingFace",
-        ),
-    ],
-    epochs: typing.Annotated[int, typer.Option(3, "--epochs", "-e", help="Number of training epochs")],
-    batch_size: typing.Annotated[int, typer.Option(16, "--batch-size", "-b", help="Training batch size")],
-    learning_rate: typing.Annotated[float, typer.Option(2e-5, "--learning-rate", "-lr", help="Learning rate")],
-    max_length: typing.Annotated[int, typer.Option(128, "--max-length", help="Maximum token sequence length")],
-    augment: typing.Annotated[bool, typer.Option(True, "--augment/--no-augment", help="Enable data augmentation")],
+        typer.Option("--model-name", "-m", help="Pretrained model name from HuggingFace"),
+    ] = "emilyalsentzer/Bio_ClinicalBERT",
+    epochs: typing.Annotated[int, typer.Option("--epochs", "-e", help="Number of training epochs")] = 3,
+    batch_size: typing.Annotated[int, typer.Option("--batch-size", "-b", help="Training batch size")] = 16,
+    learning_rate: typing.Annotated[float, typer.Option("--learning-rate", "-l", help="Learning rate")] = 2e-5,
+    max_length: typing.Annotated[int, typer.Option("--max-length", help="Maximum token sequence length")] = 128,
     n_augmentations: typing.Annotated[
-        int, typer.Option(3, "--n-augmentations", help="Number of augmentations per example")
-    ],
-    test_size: typing.Annotated[float, typer.Option(0.15, "--test-size", help="Test set proportion (0-1)")],
-    val_size: typing.Annotated[float, typer.Option(0.15, "--val-size", help="Validation set proportion (0-1)")],
-    seed: typing.Annotated[int, typer.Option(42, "--seed", help="Random seed for reproducibility")],
-    device: typing.Annotated[str, typer.Option("auto", "--device", help="Device to use (auto/cuda/mps/cpu)")],
+        int, typer.Option("--n-augmentations", help="Number of augmentations per example")
+    ] = 3,
+    test_size: typing.Annotated[float, typer.Option("--test-size", help="Test set proportion (0-1)")] = 0.15,
+    val_size: typing.Annotated[float, typer.Option("--val-size", help="Validation set proportion (0-1)")] = 0.15,
+    seed: typing.Annotated[int, typer.Option("--seed", help="Random seed for reproducibility")] = 42,
+    device: typing.Annotated[str, typer.Option("--device", help="Device to use (auto/cuda/mps/cpu)")] = "auto",
     template_file: typing.Annotated[
         Path | None,
         typer.Option(
-            None,
             "--template-file",
             "-t",
-            help="Path to augmentation template JSON file If not specified, no templates will be applied.",
+            help="Path to augmentation template JSON file. If not specified, no templates will be applied.",
         ),
-    ],
+    ] = None,
+    augment: typing.Annotated[bool, typer.Option(help="Enable data augmentation")] = True,
     save_confusion_matrix_flag: typing.Annotated[
         bool,
-        typer.Option(
-            False,
-            "--save-confusion-matrix/--no-save-confusion-matrix",
-            help="Save confusion matrix during training (requires matplotlib)",
-        ),
-    ],
+        typer.Option(help="Save confusion matrix during training (requires matplotlib)"),
+    ] = False,
 ) -> None:
     """
     Train Bio_ClinicalBERT for disease classification from symptom descriptions.

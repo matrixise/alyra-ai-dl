@@ -22,10 +22,9 @@ app = typer.Typer(help="Prepare dataset for model training")
 
 @app.command()
 def prepare(
-    input_file: typing.Annoated[
+    input_file: typing.Annotated[
         pathlib.Path,
         typer.Option(
-            ...,
             "--input",
             "-i",
             help="Path to input CSV file (augmented dataset)",
