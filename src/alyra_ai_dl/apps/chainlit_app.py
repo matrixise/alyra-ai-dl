@@ -22,7 +22,7 @@ from alyra_ai_dl import (
     detect_device,
     predict_with_threshold,
 )
-from apps.llm_processor import generate_response
+from alyra_ai_dl.apps.llm_processor import generate_response
 
 # Load LLM backend configuration from environment
 LLM_BACKEND = os.getenv("LLM_BACKEND", "ollama")

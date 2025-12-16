@@ -28,7 +28,7 @@ from alyra_ai_dl import (
     detect_device,
     predict_with_threshold,
 )
-from apps.llm_processor import generate_response
+from alyra_ai_dl.apps.llm_processor import generate_response
 
 app = typer.Typer(help="Medical Symptom Analyzer CLI")
 console = Console()
