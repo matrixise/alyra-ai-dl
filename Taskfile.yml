@@ -270,6 +270,15 @@ tasks:
     cmds:
       - "{{.PYTHON_BIN}}/python scripts/training/train_model.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
 
+  ml:train:recall:
+    desc: "Train model optimized for recall (medical contexts)"
+    deps: [venv:init]
+    vars:
+      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
+      OUTPUT_DIR: "models/symptom_classifier_recall"
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/training/train_model_recall.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
+
   ml:train:quick:
     desc: "Quick training test with 2 diseases only (for development)"
     deps: [venv:init]
