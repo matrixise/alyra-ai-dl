@@ -10,10 +10,10 @@ import pathlib
 
 import pandas as pd
 import streamlit as st
-from llm_processor import generate_response
 
 from alyra_ai_dl.core import DEFAULT_MODEL_PATH, create_classifier, detect_device
 from alyra_ai_dl.inference import predict_with_threshold
+from apps.llm_processor import generate_response
 
 
 @st.cache_resource
