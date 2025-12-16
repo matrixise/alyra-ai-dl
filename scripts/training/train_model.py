@@ -39,7 +39,9 @@ Usage:
 """
 
 import json
+import pathlib
 import random
+import typing
 import warnings
 from pathlib import Path
 
@@ -66,14 +68,11 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-
 from visualization import save_confusion_matrix
 
 warnings.filterwarnings("ignore")
 
-app = typer.Typer(
-    help="Train Bio_ClinicalBERT for disease classification from symptoms"
-)
+app = typer.Typer(help="Train Bio_ClinicalBERT for disease classification from symptoms")
 console = Console()
 
 # Default paths
@@ -122,11 +121,11 @@ def get_templates(template_file: Path) -> list[str]:
         raise FileNotFoundError(f"Template file not found: {template_file}")
 
     try:
-        with open(template_file, "r", encoding="utf-8") as f:
+        with open(template_file, encoding="utf-8") as f:
             data = json.load(f)
             return data["templates"]
     except (json.JSONDecodeError, KeyError) as e:
-        raise ValueError(f"Invalid template file {template_file}: {e}")
+        raise ValueError(f"Invalid template file {template_file}: {e}") from e
 
 
 def add_template(text: str, template_file: Path) -> str:
@@ -136,9 +135,7 @@ def add_template(text: str, template_file: Path) -> str:
     return template.format(text)
 
 
-def augment_example(
-    text: str, label: int, n_augmentations: int = 3, template_file: Path | None = None
-) -> list:
+def augment_example(text: str, label: int, n_augmentations: int = 3, template_file: Path | None = None) -> list:
     """Generate augmented versions of an example."""
     augmented = []
     for _ in range(n_augmentations):
@@ -189,64 +186,63 @@ def compute_metrics(eval_pred):
 
 @app.command()
 def train(
-    diseases: str = typer.Argument(
-        ..., help="Comma-separated list of diseases to classify"
-    ),
-    data_path: Path = typer.Option(
-        DEFAULT_DATA_PATH,
-        "--data-path",
-        "-d",
-        help="Path to CSV file with diseases and symptoms",
-    ),
-    output_dir: Path = typer.Option(
-        DEFAULT_OUTPUT_DIR,
-        "--output-dir",
-        "-o",
-        help="Directory to save trained model",
-    ),
-    model_name: str = typer.Option(
-        "emilyalsentzer/Bio_ClinicalBERT",
-        "--model-name",
-        "-m",
-        help="Pretrained model name from HuggingFace",
-    ),
-    epochs: int = typer.Option(3, "--epochs", "-e", help="Number of training epochs"),
-    batch_size: int = typer.Option(
-        16, "--batch-size", "-b", help="Training batch size"
-    ),
-    learning_rate: float = typer.Option(
-        2e-5, "--learning-rate", "-lr", help="Learning rate"
-    ),
-    max_length: int = typer.Option(
-        128, "--max-length", help="Maximum token sequence length"
-    ),
-    augment: bool = typer.Option(
-        True, "--augment/--no-augment", help="Enable data augmentation"
-    ),
-    n_augmentations: int = typer.Option(
-        3, "--n-augmentations", help="Number of augmentations per example"
-    ),
-    test_size: float = typer.Option(
-        0.15, "--test-size", help="Test set proportion (0-1)"
-    ),
-    val_size: float = typer.Option(
-        0.15, "--val-size", help="Validation set proportion (0-1)"
-    ),
-    seed: int = typer.Option(42, "--seed", help="Random seed for reproducibility"),
-    device: str = typer.Option(
-        "auto", "--device", help="Device to use (auto/cuda/mps/cpu)"
-    ),
-    template_file: Path | None = typer.Option(
-        None,
-        "--template-file",
-        "-t",
-        help="Path to augmentation template JSON file (e.g., config/augmentation_templates_fr_physician.json). If not specified, no templates will be applied.",
-    ),
-    save_confusion_matrix_flag: bool = typer.Option(
-        False,
-        "--save-confusion-matrix/--no-save-confusion-matrix",
-        help="Save confusion matrix during training (requires matplotlib)",
-    ),
+    diseases: typing.Annotated[str, typer.Argument(help="Comma-separated list of diseases to classify")],
+    data_path: typing.Annotated[
+        pathlib.Path,
+        typer.Option(
+            DEFAULT_DATA_PATH,
+            "--data-path",
+            "-d",
+            help="Path to CSV file with diseases and symptoms",
+        ),
+    ],
+    output_dir: typing.Annotated[
+        pathlib.Path,
+        typer.Option(
+            DEFAULT_OUTPUT_DIR,
+            "--output-dir",
+            "-o",
+            help="Directory to save trained model",
+        ),
+    ],
+    model_name: typing.Annotated[
+        str,
+        typer.Option(
+            "emilyalsentzer/Bio_ClinicalBERT",
+            "--model-name",
+            "-m",
+            help="Pretrained model name from HuggingFace",
+        ),
+    ],
+    epochs: typing.Annotated[int, typer.Option(3, "--epochs", "-e", help="Number of training epochs")],
+    batch_size: typing.Annotated[int, typer.Option(16, "--batch-size", "-b", help="Training batch size")],
+    learning_rate: typing.Annotated[float, typer.Option(2e-5, "--learning-rate", "-lr", help="Learning rate")],
+    max_length: typing.Annotated[int, typer.Option(128, "--max-length", help="Maximum token sequence length")],
+    augment: typing.Annotated[bool, typer.Option(True, "--augment/--no-augment", help="Enable data augmentation")],
+    n_augmentations: typing.Annotated[
+        int, typer.Option(3, "--n-augmentations", help="Number of augmentations per example")
+    ],
+    test_size: typing.Annotated[float, typer.Option(0.15, "--test-size", help="Test set proportion (0-1)")],
+    val_size: typing.Annotated[float, typer.Option(0.15, "--val-size", help="Validation set proportion (0-1)")],
+    seed: typing.Annotated[int, typer.Option(42, "--seed", help="Random seed for reproducibility")],
+    device: typing.Annotated[str, typer.Option("auto", "--device", help="Device to use (auto/cuda/mps/cpu)")],
+    template_file: typing.Annotated[
+        Path | None,
+        typer.Option(
+            None,
+            "--template-file",
+            "-t",
+            help="Path to augmentation template JSON file If not specified, no templates will be applied.",
+        ),
+    ],
+    save_confusion_matrix_flag: typing.Annotated[
+        bool,
+        typer.Option(
+            False,
+            "--save-confusion-matrix/--no-save-confusion-matrix",
+            help="Save confusion matrix during training (requires matplotlib)",
+        ),
+    ],
 ) -> None:
     """
     Train Bio_ClinicalBERT for disease classification from symptom descriptions.
@@ -283,14 +279,12 @@ def train(
             console.print(f"[yellow]Loaded {len(templates)} templates[/yellow]")
         except FileNotFoundError as e:
             console.print(f"[red]Error: {e}[/red]")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from e
         except ValueError as e:
             console.print(f"[red]Error: {e}[/red]")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from e
     else:
-        console.print(
-            "[yellow]No template file specified - templates will not be applied during augmentation[/yellow]"
-        )
+        console.print("[yellow]No template file specified - templates will not be applied during augmentation[/yellow]")
 
     console.print(f"\n[green]Target diseases ({len(target_diseases)}):[/green]")
     for i, disease in enumerate(target_diseases, 1):
@@ -338,12 +332,8 @@ def train(
     # Validate: need at least 10 examples per class for proper train/val/test split
     min_examples = class_dist.min()
     if min_examples < 10:
-        console.print(
-            f"[red]Error: At least one disease has only {min_examples} examples[/red]"
-        )
-        console.print(
-            "[yellow]Need at least 10 examples per disease for train/val/test split[/yellow]"
-        )
+        console.print(f"[red]Error: At least one disease has only {min_examples} examples[/red]")
+        console.print("[yellow]Need at least 10 examples per disease for train/val/test split[/yellow]")
         raise typer.Exit(1)
 
     # Create label mappings
@@ -354,7 +344,7 @@ def train(
     # ========================================================================
     # 3. Train/Val/Test Split
     # ========================================================================
-    console.print(f"\n[bold]Splitting dataset...[/bold]")
+    console.print("\n[bold]Splitting dataset...[/bold]")
 
     train_df, temp_df = train_test_split(
         df_filtered,
@@ -378,25 +368,17 @@ def train(
     # 4. Data Augmentation
     # ========================================================================
     if augment:
-        console.print(
-            f"\n[bold]Applying data augmentation (x{n_augmentations})...[/bold]"
-        )
+        console.print(f"\n[bold]Applying data augmentation (x{n_augmentations})...[/bold]")
 
         augmented_rows = []
         for _, row in train_df.iterrows():
             # Keep original
             augmented_rows.append({"symptoms": row["symptoms"], "label": row["label"]})
             # Add augmented versions
-            augmented_rows.extend(
-                augment_example(
-                    row["symptoms"], row["label"], n_augmentations, template_file
-                )
-            )
+            augmented_rows.extend(augment_example(row["symptoms"], row["label"], n_augmentations, template_file))
 
         train_aug_df = pd.DataFrame(augmented_rows)
-        console.print(
-            f"  Original: {len(train_df):,} → Augmented: {len(train_aug_df):,}"
-        )
+        console.print(f"  Original: {len(train_df):,} → Augmented: {len(train_aug_df):,}")
     else:
         train_aug_df = train_df
 
@@ -436,7 +418,7 @@ def train(
     # ========================================================================
     # 6. Model Training
     # ========================================================================
-    console.print(f"\n[bold]Initializing model...[/bold]")
+    console.print("\n[bold]Initializing model...[/bold]")
 
     model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
@@ -488,7 +470,7 @@ def train(
     # ========================================================================
     # 7. Evaluation on Test Set
     # ========================================================================
-    console.print(f"\n[bold]Evaluating on test set...[/bold]")
+    console.print("\n[bold]Evaluating on test set...[/bold]")
 
     test_results = trainer.evaluate(tokenized_datasets["test"])
 
@@ -512,15 +494,13 @@ def train(
 
     # Classification report
     console.print("\n[bold]Classification Report:[/bold]")
-    report = classification_report(
-        y_true, y_pred, target_names=target_diseases, digits=4
-    )
+    report = classification_report(y_true, y_pred, target_names=target_diseases, digits=4)
     console.print(report)
 
     # ========================================================================
     # 8. Save Model and Artifacts
     # ========================================================================
-    console.print(f"\n[bold]Saving model and artifacts...[/bold]")
+    console.print("\n[bold]Saving model and artifacts...[/bold]")
 
     # Create output directories
     final_model_path = output_dir / "final"
@@ -536,7 +516,7 @@ def train(
     # Save label mappings
     with open(final_model_path / "label_mappings.json", "w") as f:
         json.dump({"label2id": label2id, "id2label": id2label}, f, indent=2)
-    console.print(f"  ✓ Label mappings saved")
+    console.print("  ✓ Label mappings saved")
 
     # Save training metrics
     with open(metrics_path / "training_metrics.json", "w") as f:
@@ -544,9 +524,7 @@ def train(
             {
                 "training_loss": train_result.training_loss,
                 "train_runtime": train_result.metrics["train_runtime"],
-                "train_samples_per_second": train_result.metrics[
-                    "train_samples_per_second"
-                ],
+                "train_samples_per_second": train_result.metrics["train_samples_per_second"],
             },
             f,
             indent=2,
@@ -567,9 +545,7 @@ def train(
         save_confusion_matrix(y_true, y_pred, target_diseases, cm_path)
         console.print(f"  ✓ Confusion matrix saved to: {cm_path}")
     else:
-        console.print(
-            f"  ⊘ Confusion matrix skipped (use --save-confusion-matrix to enable)"
-        )
+        console.print("  ⊘ Confusion matrix skipped (use --save-confusion-matrix to enable)")
 
     # ========================================================================
     # 9. Summary
@@ -591,11 +567,9 @@ def train(
     console.print(summary_table)
 
     console.print("\n[dim]Use this model with:[/dim]")
-    console.print(f"[dim]  from transformers import pipeline[/dim]")
-    console.print(
-        f'[dim]  classifier = pipeline("text-classification", model="{final_model_path}")[/dim]'
-    )
-    console.print(f'[dim]  result = classifier("anxiety and chest pain")[/dim]\n')
+    console.print("[dim]  from transformers import pipeline[/dim]")
+    console.print(f'[dim]  classifier = pipeline("text-classification", model="{final_model_path}")[/dim]')
+    console.print('[dim]  result = classifier("anxiety and chest pain")[/dim]\n')
 
 
 if __name__ == "__main__":

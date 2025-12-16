@@ -142,17 +142,14 @@ def get_llm(
 
     if backend == LLMBackend.OLLAMA:
         config = get_ollama_config(base_url, model)
-        return OllamaLLM(
-            model=config["model"],
-            base_url=config["base_url"]
-        )
+        return OllamaLLM(model=config["model"], base_url=config["base_url"])
 
     elif backend == LLMBackend.LIGHTNING:
         config = get_lightning_config(base_url, model, api_key)
         return ChatOpenAI(
             model=config["model"],
             api_key=config["api_key"],
-            base_url=config["base_url"]
+            base_url=config["base_url"],
         )
 
     else:
@@ -171,7 +168,9 @@ AI Analysis - Differential diagnosis probabilities:
 Primary diagnosis: {disease} ({confidence:.0%} confidence)
 
 Guidelines:
-- **IMPORTANT**: Always emphasize that this is a decision support tool only and that a proper medical consultation and clinical examination by a qualified healthcare professional is REQUIRED for diagnosis and treatment
+- **IMPORTANT**: Always emphasize that this is a decision support tool only and
+  that a proper medical consultation and clinical examination by a qualified healthcare
+  professional is REQUIRED for diagnosis and treatment
 - Present the differential diagnosis with all significant probabilities
 - Provide a clinical interpretation of the confidence levels
 - If confidence is low (<60%), emphasize the diagnostic uncertainty and suggest alternative approaches
@@ -230,9 +229,7 @@ def generate_response(
     sorted_probs = sorted(all_probs.items(), key=lambda x: x[1], reverse=True)
     # Only include probabilities >= 1%
     filtered_probs = [(disease, prob) for disease, prob in sorted_probs if prob >= 0.01]
-    all_probs_text = "\n".join(
-        f"- {disease}: {prob:.1%}" for disease, prob in filtered_probs
-    )
+    all_probs_text = "\n".join(f"- {disease}: {prob:.1%}" for disease, prob in filtered_probs)
 
     llm = get_llm(backend=backend, base_url=base_url, model=model)
     chain = RESPONSE_PROMPT | llm

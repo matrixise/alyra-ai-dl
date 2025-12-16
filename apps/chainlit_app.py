@@ -15,6 +15,7 @@ Configuration:
 import os
 
 import chainlit as cl
+from llm_processor import generate_response
 
 from alyra_ai_dl import (
     DEFAULT_MODEL_PATH,
@@ -22,7 +23,6 @@ from alyra_ai_dl import (
     detect_device,
     predict_with_threshold,
 )
-from llm_processor import generate_response
 
 # Load LLM backend configuration from environment
 LLM_BACKEND = os.getenv("LLM_BACKEND", "ollama")
@@ -43,7 +43,7 @@ async def start():
         classifier = create_classifier(
             model_path=DEFAULT_MODEL_PATH,
             device=device,
-            top_k=None  # Return all probabilities
+            top_k=None,  # Return all probabilities
         )
 
     await cl.Message(
@@ -86,11 +86,11 @@ async def main(message: cl.Message):
     details = f"""
 ---
 **Technical Details:**
-- Predicted: {prediction['disease']}
-- Confidence: {prediction['confidence']:.1%}
+- Predicted: {prediction["disease"]}
+- Confidence: {prediction["confidence"]:.1%}
 """
 
-    if 'suggestion' in prediction:
+    if "suggestion" in prediction:
         details += f"\n- Note: {prediction['suggestion']}"
 
     await cl.Message(content=response + details).send()

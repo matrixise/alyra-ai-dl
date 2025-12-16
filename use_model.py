@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 import json
 import pathlib
 import typing
 
 # import pytest
 import torch
+
 # from rich.pretty import pprint
 from transformers import (
     AutoModelForSequenceClassification,
@@ -29,9 +31,7 @@ def load_model_and_tokenizer(
     device: DeviceEnum,
 ) -> ModelAndTokenizerTuple:
     tokenizer: BertTokenizerFast = AutoTokenizer.from_pretrained(model_path)
-    model: BertForSequenceClassification = (
-        AutoModelForSequenceClassification.from_pretrained(model_path)
-    )
+    model: BertForSequenceClassification = AutoModelForSequenceClassification.from_pretrained(model_path)
     model.to(device.value)
     model.eval()
     return ModelAndTokenizerTuple(model, tokenizer)
@@ -92,9 +92,7 @@ class DiseaseClassifier:
                 "disease": self.id2label[pred_idx],
                 "confidence": confidence,
             }
-        result["all_probs"] = {
-            self.id2label[i]: probs[0][i].item() for i in range(len(self.id2label))
-        }
+        result["all_probs"] = {self.id2label[i]: probs[0][i].item() for i in range(len(self.id2label))}
 
         result["symptoms"] = text
         result["threshold"] = threshold
@@ -114,7 +112,9 @@ model, tokenizer = load_model_and_tokenizer(
 # print(f'{model.config.label2id=}')
 classifier = DiseaseClassifier(model, tokenizer)
 # symptoms = "leg pain"
-symptoms = "hip pain, back pain, neck pain, low back pain, problems with movement, loss of sensation, leg cramps or spasms"
+symptoms = (
+    "hip pain, back pain, neck pain, low back pain, problems with movement, loss of sensation, leg cramps or spasms"
+)
 threshold = 0.55
 print(f"{symptoms=}")
 print(f"{threshold=}")

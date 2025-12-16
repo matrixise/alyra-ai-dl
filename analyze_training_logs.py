@@ -85,11 +85,9 @@ def extract_metrics(history: list[dict]) -> dict[str, pd.DataFrame]:
     }
 
 
-def plot_loss_curves(
-    metrics: dict[str, pd.DataFrame], output_path: Path, model_name: str = "Model"
-):
+def plot_loss_curves(metrics: dict[str, pd.DataFrame], output_path: Path, model_name: str = "Model"):
     """Plot training and validation loss curves."""
-    fig, ax = plt.subplots(figsize=(12, 6))
+    _fig, ax = plt.subplots(figsize=(12, 6))
 
     if not metrics["train"].empty and "loss" in metrics["train"].columns:
         ax.plot(
@@ -123,15 +121,13 @@ def plot_loss_curves(
     console.print(f"  ✓ Loss curves saved to: {output_path / 'loss_curves.png'}")
 
 
-def plot_learning_rate(
-    metrics: dict[str, pd.DataFrame], output_path: Path, model_name: str = "Model"
-):
+def plot_learning_rate(metrics: dict[str, pd.DataFrame], output_path: Path, model_name: str = "Model"):
     """Plot learning rate schedule."""
     if metrics["train"].empty or "learning_rate" not in metrics["train"].columns:
         console.print("  ⊘ Learning rate data not available")
         return
 
-    fig, ax = plt.subplots(figsize=(12, 6))
+    _fig, ax = plt.subplots(figsize=(12, 6))
 
     ax.plot(
         metrics["train"]["step"],
@@ -149,14 +145,10 @@ def plot_learning_rate(
     plt.savefig(output_path / "learning_rate.png", dpi=150, bbox_inches="tight")
     plt.close()
 
-    console.print(
-        f"  ✓ Learning rate plot saved to: {output_path / 'learning_rate.png'}"
-    )
+    console.print(f"  ✓ Learning rate plot saved to: {output_path / 'learning_rate.png'}")
 
 
-def plot_metrics(
-    metrics: dict[str, pd.DataFrame], output_path: Path, model_name: str = "Model"
-):
+def plot_metrics(metrics: dict[str, pd.DataFrame], output_path: Path, model_name: str = "Model"):
     """Plot validation metrics (accuracy, F1, precision, recall)."""
     if metrics["eval"].empty:
         console.print("  ⊘ Validation metrics not available")
@@ -174,7 +166,7 @@ def plot_metrics(
         console.print("  ⊘ No standard validation metrics found")
         return
 
-    fig, ax = plt.subplots(figsize=(12, 6))
+    _fig, ax = plt.subplots(figsize=(12, 6))
 
     for metric in available_metrics:
         label = metric.replace("eval_", "").replace("_", " ").title()
@@ -198,9 +190,7 @@ def plot_metrics(
     plt.savefig(output_path / "validation_metrics.png", dpi=150, bbox_inches="tight")
     plt.close()
 
-    console.print(
-        f"  ✓ Validation metrics plot saved to: {output_path / 'validation_metrics.png'}"
-    )
+    console.print(f"  ✓ Validation metrics plot saved to: {output_path / 'validation_metrics.png'}")
 
 
 def print_summary_table(history: list[dict], model_name: str = "Model"):
@@ -225,16 +215,12 @@ def print_summary_table(history: list[dict], model_name: str = "Model"):
         if "eval_loss" in eval_df.columns:
             best_loss = eval_df["eval_loss"].min()
             best_loss_step = eval_df.loc[eval_df["eval_loss"].idxmin(), "step"]
-            table.add_row(
-                "Best Validation Loss", f"{best_loss:.4f} (step {int(best_loss_step)})"
-            )
+            table.add_row("Best Validation Loss", f"{best_loss:.4f} (step {int(best_loss_step)})")
 
         if "eval_accuracy" in eval_df.columns:
             best_acc = eval_df["eval_accuracy"].max()
             best_acc_step = eval_df.loc[eval_df["eval_accuracy"].idxmax(), "step"]
-            table.add_row(
-                "Best Accuracy", f"{best_acc:.4f} (step {int(best_acc_step)})"
-            )
+            table.add_row("Best Accuracy", f"{best_acc:.4f} (step {int(best_acc_step)})")
 
         if "eval_f1_macro" in eval_df.columns:
             best_f1 = eval_df["eval_f1_macro"].max()
@@ -258,7 +244,7 @@ def compare_runs(model_paths: list[Path], output_path: Path):
     """Compare multiple training runs."""
     console.print("\n[bold magenta]Comparing Multiple Runs[/bold magenta]")
 
-    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    _fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
     colors = ["blue", "red", "green", "orange", "purple"]
     comparison_data = []
@@ -371,9 +357,7 @@ def compare_runs(model_paths: list[Path], output_path: Path):
             table.add_row(
                 row["Model"],
                 f"{row['Final Loss']:.4f}" if row["Final Loss"] is not None else "N/A",
-                f"{row['Final Accuracy']:.4f}"
-                if row["Final Accuracy"] is not None
-                else "N/A",
+                f"{row['Final Accuracy']:.4f}" if row["Final Accuracy"] is not None else "N/A",
                 f"{row['Final F1']:.4f}" if row["Final F1"] is not None else "N/A",
             )
 
@@ -381,9 +365,7 @@ def compare_runs(model_paths: list[Path], output_path: Path):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Analyze and visualize training logs from Bio_ClinicalBERT models"
-    )
+    parser = argparse.ArgumentParser(description="Analyze and visualize training logs from Bio_ClinicalBERT models")
     parser.add_argument(
         "model_paths",
         nargs="+",
@@ -414,9 +396,7 @@ def main():
     # Comparison mode
     if args.compare or len(args.model_paths) > 1:
         if len(args.model_paths) < 2:
-            console.print(
-                "[red]Error: Comparison requires at least 2 model paths[/red]"
-            )
+            console.print("[red]Error: Comparison requires at least 2 model paths[/red]")
             return 1
 
         compare_runs(args.model_paths, args.output)
@@ -448,7 +428,7 @@ def main():
             plot_learning_rate(metrics, args.output, model_path.name)
             plot_metrics(metrics, args.output, model_path.name)
 
-            console.print(f"\n[bold green]✓ Analysis complete![/bold green]")
+            console.print("\n[bold green]✓ Analysis complete![/bold green]")
             console.print(f"[dim]Plots saved to: {args.output}[/dim]")
 
         except FileNotFoundError as e:

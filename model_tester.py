@@ -1,3 +1,4 @@
+import json
 import pathlib
 import typing
 
@@ -10,36 +11,14 @@ ModelPath = typing.Annotated[
     typer.Argument(exists=True, dir_okay=True),
 ]
 
-TEST_CASES = [
-    (
-        "spondylolisthesis",
-        "low back pain, problems with movement, paresthesia, leg cramps or spasms, leg weakness",
-    ),
-    (
-        "spondylolisthesis",
-        "hip pain, back pain, neck pain, low back pain, problems with movement, loss of sensation, leg cramps or spasms",
-    ),
-    (
-        "herniated disk",
-        "arm pain, back pain, neck pain, paresthesia, shoulder pain, arm weakness",
-    ),
-    ("herniated disk", "loss of sensation, paresthesia, shoulder pain"),
-    (
-        "panic disorder",
-        "depressive or psychotic symptoms, irregular heartbeat, breathing fast",
-    ),
-    ("panic disorder", "insomnia, palpitations, irregular heartbeat"),
-    (
-        "panic disorder",
-        "anxiety and nervousness, shortness of breath, depressive or psychotic symptoms, chest tightness, palpitations, irregular heartbeat, breathing fast",
-    ),
-]
-
 
 def main(
     model_path: ModelPath,
     threshold: float = 0.5,
     top_k: int | None = None,
+    test_cases_path: typing.Annotated[pathlib.Path, typer.Option(exists=True, file_okay=True)] = pathlib.Path(
+        "data/test_cases.json"
+    ),
 ):
     print(f"Loading model from: {model_path}")
 
@@ -53,7 +32,15 @@ def main(
     # Afficher les labels disponibles
     print(f"Available labels: {classifier.model.config.id2label}\n")
 
-    for expected_disease, test_symptoms in TEST_CASES:
+    test_cases = [
+        (
+            record["disease"],
+            record["symptoms"],
+        )
+        for record in json.loads(test_cases_path.read_text())
+    ]
+
+    for expected_disease, test_symptoms in test_cases:
         result = predict_with_threshold(classifier, test_symptoms, threshold)
         match = "✓" if result["disease"] == expected_disease else "✗"
         print(

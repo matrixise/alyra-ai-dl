@@ -56,9 +56,7 @@ def analyze(
     ] = False,
     llm_backend: Annotated[
         str,
-        typer.Option(
-            "--llm-backend", help="LLM backend to use (ollama, lightning)"
-        ),
+        typer.Option("--llm-backend", help="LLM backend to use (ollama, lightning)"),
     ] = os.getenv("LLM_BACKEND", "ollama"),
     ollama_url: Annotated[
         str,
@@ -91,9 +89,7 @@ def analyze(
     except Exception as e:
         console.print(f"[bold red]Error loading model:[/bold red] {e}")
         console.print(f"[yellow]Model path: {model_path}[/yellow]")
-        console.print(
-            "[yellow]Make sure the model is a valid transformers model[/yellow]"
-        )
+        console.print("[yellow]Make sure the model is a valid transformers model[/yellow]")
         raise typer.Exit(1) from e
 
     console.print(
@@ -130,9 +126,7 @@ def analyze(
         )
 
         # Display results in a table
-        table = Table(
-            title="BERT Analysis", show_header=True, header_style="bold magenta"
-        )
+        table = Table(title="BERT Analysis", show_header=True, header_style="bold magenta")
         table.add_column("Metric", style="cyan")
         table.add_column("Value", style="green")
 
@@ -150,9 +144,7 @@ def analyze(
             prob_table.add_column("Disease", style="cyan")
             prob_table.add_column("Probability", style="green")
 
-            sorted_probs = sorted(
-                prediction["all_probs"].items(), key=lambda x: x[1], reverse=True
-            )
+            sorted_probs = sorted(prediction["all_probs"].items(), key=lambda x: x[1], reverse=True)
             for disease, prob in sorted_probs:
                 prob_table.add_row(disease, f"{prob:.1%}")
 
@@ -160,9 +152,7 @@ def analyze(
 
         # Step 2: LLM response (optional)
         if use_llm:
-            console.print(
-                f"\n[bold cyan][{llm_backend.upper()}][/bold cyan] Generating response..."
-            )
+            console.print(f"\n[bold cyan][{llm_backend.upper()}][/bold cyan] Generating response...")
             try:
                 response = generate_response(
                     user_input,
@@ -185,25 +175,15 @@ def analyze(
             except ConnectionError:
                 console.print(f"[bold red][{llm_backend.upper()}] Connection Error[/bold red]")
                 if llm_backend == "ollama":
-                    console.print(
-                        f"[yellow]Cannot connect to Ollama at {ollama_url}[/yellow]"
-                    )
-                    console.print(
-                        "[yellow]Make sure Ollama is running: ollama serve[/yellow]"
-                    )
+                    console.print(f"[yellow]Cannot connect to Ollama at {ollama_url}[/yellow]")
+                    console.print("[yellow]Make sure Ollama is running: ollama serve[/yellow]")
                 else:
-                    console.print(
-                        f"[yellow]Cannot connect to {llm_backend} service[/yellow]"
-                    )
-                    console.print(
-                        f"[yellow]Check your {llm_backend.upper()}_API_KEY environment variable[/yellow]"
-                    )
+                    console.print(f"[yellow]Cannot connect to {llm_backend} service[/yellow]")
+                    console.print(f"[yellow]Check your {llm_backend.upper()}_API_KEY environment variable[/yellow]")
             except Exception as e:
                 console.print(f"[bold red][{llm_backend.upper()}] Error:[/bold red] {e}")
                 if llm_backend == "ollama":
-                    console.print(
-                        f"[yellow]Check '{ollama_model}' is installed: ollama list[/yellow]"
-                    )
+                    console.print(f"[yellow]Check '{ollama_model}' is installed: ollama list[/yellow]")
 
         console.print("\n" + "-" * 60 + "\n")
 

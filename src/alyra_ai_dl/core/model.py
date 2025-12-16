@@ -12,9 +12,7 @@ from alyra_ai_dl.core.device import DeviceEnum, detect_device
 load_dotenv()
 
 # Get model path from environment variable or use default
-DEFAULT_MODEL_PATH = pathlib.Path(
-    os.getenv("MODEL_PATH", "./models/symptom_classifier-old-trainer/final/")
-)
+DEFAULT_MODEL_PATH = pathlib.Path(os.getenv("MODEL_PATH", "./models/symptom_classifier-old-trainer/final/"))
 
 
 def create_classifier(

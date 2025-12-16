@@ -10,10 +10,10 @@ import pathlib
 
 import pandas as pd
 import streamlit as st
+from llm_processor import generate_response
 
 from alyra_ai_dl.core import DEFAULT_MODEL_PATH, create_classifier, detect_device
 from alyra_ai_dl.inference import predict_with_threshold
-from llm_processor import generate_response
 
 
 @st.cache_resource
@@ -86,7 +86,7 @@ def main():
         use_llm = st.checkbox(
             "Activer le résumé LLM",
             value=False,
-            help="Générer un résumé clinique professionnel avec un LLM"
+            help="Générer un résumé clinique professionnel avec un LLM",
         )
 
         if use_llm:
@@ -94,19 +94,19 @@ def main():
                 "Backend LLM",
                 options=["ollama", "lightning"],
                 index=0 if os.getenv("LLM_BACKEND", "ollama") == "ollama" else 1,
-                help="Choisir le backend LLM à utiliser"
+                help="Choisir le backend LLM à utiliser",
             )
 
             if llm_backend == "ollama":
                 ollama_url = st.text_input(
                     "URL Ollama",
                     value=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
-                    help="URL du serveur Ollama"
+                    help="URL du serveur Ollama",
                 )
                 ollama_model = st.text_input(
                     "Modèle Ollama",
                     value=os.getenv("OLLAMA_MODEL", "llama3"),
-                    help="Nom du modèle Ollama à utiliser"
+                    help="Nom du modèle Ollama à utiliser",
                 )
 
         st.divider()
@@ -136,7 +136,10 @@ def main():
     st.subheader("📝 Entrez les Symptômes")
     symptoms = st.text_area(
         "Symptômes (séparés par des virgules)",
-        "hip pain, back pain, neck pain, low back pain, problems with movement, loss of sensation, leg cramps or spasms",
+        (
+            "hip pain, back pain, neck pain, low back pain, problems with movement, loss of sensation, "
+            "leg cramps or spasms"
+        ),
         height=100,
         help="Entrez les symptômes séparés par des virgules",
     )
@@ -170,9 +173,7 @@ def main():
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    disease_color = (
-                        "normal" if result["disease"] != "unknown" else "off"
-                    )
+                    disease_color = "normal" if result["disease"] != "unknown" else "off"
                     st.metric(
                         "Maladie Prédite",
                         result["disease"].title(),
@@ -192,9 +193,7 @@ def main():
                 if result["disease"] == "unknown":
                     st.warning(f"⚠️ {result['suggestion']}")
                 else:
-                    st.success(
-                        f"✅ Maladie identifiée avec {confidence_pct} de confiance"
-                    )
+                    st.success(f"✅ Maladie identifiée avec {confidence_pct} de confiance")
 
                 # Graphique des probabilités
                 st.subheader("📈 Toutes les Probabilités")
@@ -209,13 +208,11 @@ def main():
 
                 # Table détaillée
                 st.subheader("📋 Probabilités Détaillées")
-                probs_df["Probabilité"] = probs_df["Probabilité"].apply(
-                    lambda x: f"{x:.2%}"
-                )
+                probs_df["Probabilité"] = probs_df["Probabilité"].apply(lambda x: f"{x:.2%}")
                 st.dataframe(
                     probs_df,
                     hide_index=True,
-                    width='stretch',
+                    width="stretch",
                 )
 
                 # Détails JSON
@@ -251,10 +248,10 @@ def main():
                         except ValueError as e:
                             st.error(f"❌ Erreur de configuration {llm_backend.upper()}: {e}")
                             st.info("💡 Vérifiez votre configuration LLM dans la sidebar")
-                        except ConnectionError as e:
+                        except ConnectionError:
                             st.error(f"❌ Impossible de se connecter à {llm_backend.upper()}")
                             if llm_backend == "ollama":
-                                st.info(f"💡 Assurez-vous qu'Ollama est démarré: `ollama serve`")
+                                st.info("💡 Assurez-vous qu'Ollama est démarré: `ollama serve`")
                             else:
                                 st.info(f"💡 Vérifiez votre clé API {llm_backend.upper()}")
                         except Exception as e:

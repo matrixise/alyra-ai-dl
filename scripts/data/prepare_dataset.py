@@ -11,6 +11,7 @@ Ce script:
 """
 
 import pathlib
+import typing
 
 import pandas as pd
 import typer
@@ -21,28 +22,35 @@ app = typer.Typer(help="Prepare dataset for model training")
 
 @app.command()
 def prepare(
-    input_file: pathlib.Path = typer.Option(
-        ...,
-        "--input",
-        "-i",
-        help="Path to input CSV file (augmented dataset)",
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-    ),
-    output_file: pathlib.Path = typer.Option(
-        ...,
-        "--output",
-        "-o",
-        help="Path to output CSV file (prepared dataset)",
-    ),
-    diseases: str = typer.Option(
-        ...,
-        "--diseases",
-        "-d",
-        help="Comma-separated list of diseases to keep",
-    ),
+    input_file: typing.Annoated[
+        pathlib.Path,
+        typer.Option(
+            ...,
+            "--input",
+            "-i",
+            help="Path to input CSV file (augmented dataset)",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ],
+    output_file: typing.Annotated[
+        pathlib.Path,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Path to output CSV file (prepared dataset)",
+        ),
+    ],
+    diseases: typing.Annotated[
+        str,
+        typer.Option(
+            "--diseases",
+            "-d",
+            help="Comma-separated list of diseases to keep",
+        ),
+    ],
 ) -> None:
     """
     Prepare dataset for training by filtering diseases and creating symptom descriptions.
@@ -66,17 +74,14 @@ def prepare(
     logger.info("Removing duplicate rows...")
     df_unique = df.drop_duplicates()
     duplicates_removed = len(df) - len(df_unique)
-    logger.info(
-        f"Removed {duplicates_removed} duplicates ({duplicates_removed / len(df) * 100:.1f}%), {len(df_unique)} rows remaining"
-    )
+    duplicated_pct = duplicates_removed / len(df)
+    logger.info(f"Removed {duplicates_removed} duplicates ({duplicated_pct:.2%}), {len(df_unique)} rows remaining")
 
     # 3. Filter for selected diseases
     logger.info(f"Filtering for diseases: {disease_list}...")
     df_filtered = df_unique[df_unique["diseases"].isin(disease_list)]
     rows_filtered = len(df_unique) - len(df_filtered)
-    logger.info(
-        f"Removed {rows_filtered} rows, {len(df_filtered)} rows remaining with selected diseases"
-    )
+    logger.info(f"Removed {rows_filtered} rows, {len(df_filtered)} rows remaining with selected diseases")
 
     if len(df_filtered) == 0:
         logger.error("No rows left after filtering! Check disease names.")
@@ -110,7 +115,7 @@ def prepare(
     output_rows = []
     symptom_cols = [col for col in columns_to_keep if col != "diseases"]
 
-    for idx, row in df_cleaned.iterrows():
+    for _idx, row in df_cleaned.iterrows():
         disease = row["diseases"]
         # Get all symptom names where value is 1
         symptoms = [col for col in symptom_cols if row[col] == 1]
@@ -131,7 +136,7 @@ def prepare(
 
     # Show sample
     logger.info("\nSample rows from prepared dataset:")
-    for i, row in df_output.head(3).iterrows():
+    for _i, row in df_output.head(3).iterrows():
         logger.info(f"  [{row['disease']}]: {row['symptoms'][:100]}...")
 
 

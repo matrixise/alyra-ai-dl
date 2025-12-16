@@ -5,15 +5,14 @@ API FastAPI pour la classification de maladies à partir de symptômes.
 import sys
 from contextlib import asynccontextmanager
 
+import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from loguru import logger
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-import uvicorn
 
 from alyra_ai_dl.core import create_classifier, detect_device
 from alyra_ai_dl.inference import predict_with_threshold
-
 
 # ============================================================================
 # Configuration
@@ -49,7 +48,7 @@ settings = Settings()
 logger.remove()  # Retirer le handler par défaut
 logger.add(
     sys.stderr,
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
     level=settings.log_level,
 )
 
@@ -62,9 +61,7 @@ logger.add(
 class PredictRequest(BaseModel):
     """Requête de prédiction pour un ensemble de symptômes."""
 
-    symptoms: str = Field(
-        ..., description="Symptômes séparés par des virgules", min_length=1
-    )
+    symptoms: str = Field(..., description="Symptômes séparés par des virgules", min_length=1)
     threshold: float | None = Field(
         None,
         ge=0.0,
@@ -98,9 +95,7 @@ class PredictResponse(BaseModel):
 class BatchPredictRequest(BaseModel):
     """Requête de prédiction batch."""
 
-    items: list[PredictRequest] = Field(
-        ..., min_length=1, max_length=settings.max_batch_size
-    )
+    items: list[PredictRequest] = Field(..., min_length=1, max_length=settings.max_batch_size)
 
 
 class BatchPredictResponse(BaseModel):
@@ -232,11 +227,7 @@ async def predict(request: Request, payload: PredictRequest):
 
     try:
         classifier = request.app.state.classifier
-        threshold = (
-            payload.threshold
-            if payload.threshold is not None
-            else settings.default_threshold
-        )
+        threshold = payload.threshold if payload.threshold is not None else settings.default_threshold
 
         logger.debug("Predicting for symptoms: {}", payload.symptoms[:50])
         result = predict_with_threshold(classifier, payload.symptoms, threshold)
@@ -248,7 +239,7 @@ async def predict(request: Request, payload: PredictRequest):
         return result
     except Exception as e:
         logger.exception("Prediction error: {}", str(e))
-        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Prediction error: {e!s}") from e
 
 
 @app.post("/predict/batch", response_model=BatchPredictResponse, tags=["Prediction"])
@@ -267,11 +258,7 @@ async def predict_batch(request: Request, payload: BatchPredictRequest):
 
     for idx, item in enumerate(payload.items, 1):
         try:
-            threshold = (
-                item.threshold
-                if item.threshold is not None
-                else settings.default_threshold
-            )
+            threshold = item.threshold if item.threshold is not None else settings.default_threshold
             result = predict_with_threshold(classifier, item.symptoms, threshold)
             results.append(result)
             if result["disease"] != "unknown":
@@ -287,13 +274,11 @@ async def predict_batch(request: Request, payload: BatchPredictRequest):
                     "threshold": item.threshold or settings.default_threshold,
                     "all_probs": {},
                     "symptoms": item.symptoms,
-                    "suggestion": f"Error: {str(e)}",
+                    "suggestion": f"Error: {e!s}",
                 }
             )
 
-    logger.info(
-        "Batch complete: {}/{} successful predictions", success_count, batch_size
-    )
+    logger.info("Batch complete: {}/{} successful predictions", success_count, batch_size)
 
     return {
         "results": results,
