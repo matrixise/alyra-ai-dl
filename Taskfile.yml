@@ -268,7 +268,16 @@ tasks:
       DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
       OUTPUT_DIR: "models/symptom_classifier"
     cmds:
-      - "{{.PYTHON_BIN}}/python scripts/training/train_standard.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
+      - "{{.PYTHON_BIN}}/python scripts/training/train_model.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
+
+  ml:train:recall:
+    desc: "Train model optimized for recall (medical contexts)"
+    deps: [venv:init]
+    vars:
+      DISEASES: "anxiety,cystitis,herniated disk,panic disorder,pneumonia,spondylolisthesis"
+      OUTPUT_DIR: "models/symptom_classifier_recall"
+    cmds:
+      - "{{.PYTHON_BIN}}/python scripts/training/train_model_recall.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} {{.CLI_ARGS}}"
 
   ml:train:quick:
     desc: "Quick training test with 2 diseases only (for development)"
@@ -277,7 +286,7 @@ tasks:
       DISEASES: "anxiety,pneumonia"
       OUTPUT_DIR: "models/symptom_classifier_quick"
     cmds:
-      - "{{.PYTHON_BIN}}/python scripts/training/train_standard.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} --epochs 20 {{.CLI_ARGS}}"
+      - "{{.PYTHON_BIN}}/python scripts/training/train_model.py '{{.DISEASES}}' --data-path data/prepared-dataset.csv --output-dir {{.OUTPUT_DIR}} --epochs 20 {{.CLI_ARGS}}"
 
   ml:prepare:dataset:
     desc: "Prepare dataset from augmented source for training"
@@ -341,8 +350,8 @@ tasks:
       OUTPUT_FILE: '{{.CLI_ARGS | default "alyra-ai-dl-cli"}}'
     cmds:
       - task: demo:cli:record
-        vars: {OUTPUT_FILE: "{{.OUTPUT_FILE}}"}
+        vars: { OUTPUT_FILE: "{{.OUTPUT_FILE}}" }
       - task: demo:cli:gif
-        vars: {INPUT_FILE: "{{.OUTPUT_FILE}}"}
+        vars: { INPUT_FILE: "{{.OUTPUT_FILE}}" }
       - task: demo:cli:mp4
-        vars: {INPUT_FILE: "{{.OUTPUT_FILE}}"}
+        vars: { INPUT_FILE: "{{.OUTPUT_FILE}}" }
