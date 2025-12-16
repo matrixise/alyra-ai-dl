@@ -293,25 +293,25 @@ tasks:
     desc: "Start CLI symptom analyzer"
     deps: [venv:init]
     cmds:
-      - "{{.PYTHON_BIN}}/python -m apps.cli {{.CLI_ARGS}}"
+      - "{{.PYTHON_BIN}}/python -m alyra_ai_dl.apps.cli {{.CLI_ARGS}}"
 
   app:api:dev:
     desc: "Start FastAPI development server"
     deps: [venv:init]
     cmds:
-      - "{{.PYTHON_BIN}}/python apps/api.py"
+      - "{{.PYTHON_BIN}}/python -m alyra_ai_dl.apps.api"
 
   app:streamlit:dev:
     desc: "Start Streamlit development server"
     deps: [venv:init]
     cmds:
-      - "{{.PYTHON_BIN}}/streamlit run apps/streamlit_app.py"
+      - "{{.PYTHON_BIN}}/streamlit run src/alyra_ai_dl/apps/streamlit_app.py"
 
   app:chainlit:dev:
     desc: "Start Chainlit chat interface"
     deps: [venv:init]
     cmds:
-      - "{{.PYTHON_BIN}}/chainlit run apps/chainlit_app.py"
+      - "{{.PYTHON_BIN}}/chainlit run src/alyra_ai_dl/apps/chainlit_app.py"
 
   demo:cli:record:
     desc: "Record CLI demo with asciinema"

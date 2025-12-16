@@ -467,25 +467,25 @@ task app:chainlit:dev
 
 ### Application Details
 
-**CLI** (`apps/cli.py`):
+**CLI** (`src/alyra_ai_dl/apps/cli.py`):
 - Interactive REPL for symptom analysis
 - BERT predictions + optional Ollama explanations
 - Rich terminal output
-- Usage: `task app:cli` or `python -m apps.cli`
+- Usage: `task app:cli` or `python -m alyra_ai_dl.apps.cli`
 
-**API** (`apps/api.py`):
+**API** (`src/alyra_ai_dl/apps/api.py`):
 - FastAPI REST service
 - Endpoints: `/predict`, `/predict/batch`, `/health`, `/info`
 - Interactive docs at http://localhost:8000/docs
 - Usage: `task app:api:dev`
 
-**Streamlit** (`apps/streamlit_app.py`):
+**Streamlit** (`src/alyra_ai_dl/apps/streamlit_app.py`):
 - Web-based UI with charts and tables
 - Model configuration interface
 - Access at http://localhost:8501
 - Usage: `task app:streamlit:dev`
 
-**Chainlit** (`apps/chainlit_app.py`):
+**Chainlit** (`src/alyra_ai_dl/apps/chainlit_app.py`):
 - Chat-based interface
 - BERT predictions + Ollama LLM explanations
 - Step-by-step analysis display
@@ -625,7 +625,7 @@ ollama list
 
 **Python Example:**
 ```python
-from apps.llm_processor import generate_response, LLMBackend
+from alyra_ai_dl.apps.llm_processor import generate_response, LLMBackend
 
 # Use Ollama (default)
 response = generate_response(user_text, prediction)

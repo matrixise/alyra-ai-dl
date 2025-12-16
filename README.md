@@ -146,7 +146,7 @@ Interactive web interface with visualizations:
 
 ```bash
 # Run the Streamlit app
-streamlit run apps/streamlit_app.py
+streamlit run src/alyra_ai_dl/apps/streamlit_app.py
 ```
 
 **Features:**
@@ -164,7 +164,7 @@ Interactive chat interface with step-by-step analysis:
 task app:chainlit:dev
 
 # Or directly
-chainlit run apps/chainlit_app.py
+chainlit run src/alyra_ai_dl/apps/chainlit_app.py
 ```
 
 **Features:**
@@ -279,13 +279,13 @@ Run `task --list` to see all available commands. Commands are organized by categ
 
 ```
 alyra-ai-dl/
-├── apps/                      # Application interfaces
-│   ├── cli.py                 # Command-line interface (BERT + Ollama)
-│   ├── api.py                 # FastAPI REST API
-│   ├── streamlit_app.py       # Streamlit web interface
-│   └── llm_processor.py       # Ollama LLM integration
 ├── src/
 │   └── alyra_ai_dl/           # Core package
+│       ├── apps/              # Application interfaces
+│       │   ├── cli.py         # Command-line interface (BERT + Ollama)
+│       │   ├── api.py         # FastAPI REST API
+│       │   ├── streamlit_app.py  # Streamlit web interface
+│       │   └── llm_processor.py  # Ollama LLM integration
 │       ├── core/              # Model and device management
 │       ├── inference/         # Prediction pipeline
 │       └── training/          # Training utilities
