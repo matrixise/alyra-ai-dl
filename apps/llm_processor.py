@@ -171,6 +171,7 @@ AI Analysis - Differential diagnosis probabilities:
 Primary diagnosis: {disease} ({confidence:.0%} confidence)
 
 Guidelines:
+- **IMPORTANT**: Always emphasize that this is a decision support tool only and that a proper medical consultation and clinical examination by a qualified healthcare professional is REQUIRED for diagnosis and treatment
 - Present the differential diagnosis with all significant probabilities
 - Provide a clinical interpretation of the confidence levels
 - If confidence is low (<60%), emphasize the diagnostic uncertainty and suggest alternative approaches
@@ -179,6 +180,7 @@ Guidelines:
 - Highlight any red flags or urgent findings that warrant immediate attention
 - Maintain a professional, evidence-based tone
 - Keep the response concise and actionable for clinical decision-making
+- End with a reminder that professional medical advice is essential
 
 Clinical Summary:""")
 
