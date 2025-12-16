@@ -721,6 +721,44 @@ task demo:cli:all -- my-demo
 - Test the recording before final version
 - GIF files can be large - optimize with shorter recordings
 
+## Git Commit Conventions
+
+### Important Rules
+
+**⚠️ NEVER add Co-Authored-By Claude automatically:**
+- Do NOT add `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>` to commits
+- Do NOT add `🤖 Generated with [Claude Code](https://claude.com/claude-code)` footer
+- Only add co-author attribution if the user explicitly requests it
+- Commits should be clean and professional without automated signatures
+
+**Commit Message Format:**
+```
+Type: brief description
+
+- Detailed bullet points of changes
+- Keep it concise and informative
+- Focus on what and why, not how
+```
+
+**Examples:**
+```bash
+# ✅ Correct - Clean commit without co-author
+git commit -m "Refactoring: migrate apps/ to src/alyra_ai_dl/apps/
+
+- Move 6 application files to package structure
+- Update imports and documentation
+- All tests passing"
+
+# ❌ Incorrect - Contains automated co-author
+git commit -m "Refactoring: migrate apps/
+
+...
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+```
+
 ## Additional Notes
 
 - To add a new dependency for development: `task venv:add:dev -- DEPENDENCY`
