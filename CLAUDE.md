@@ -169,6 +169,29 @@ task <task-name>
 - ❌ `add` - incorrect
 - ❌ `outdated` - incorrect
 
+**Lightning AI operations** → `lightning:` prefix:
+- ✅ `lightning:login` - authenticate with Lightning AI
+- ✅ `lightning:studio:list` - list your studios
+- ✅ `lightning:studio:start` - start default studio
+- ✅ `lightning:studio:stop` - stop default studio
+- ✅ `lightning:studio:ssh` - SSH into studio
+- ❌ `login` - incorrect
+- ❌ `studio-start` - incorrect
+
+**Machine learning operations** → `ml:` prefix:
+- ✅ `ml:train:standard` - train on all diseases
+- ✅ `ml:train:quick` - quick training test
+- ✅ `ml:prepare:dataset` - prepare dataset
+- ✅ `ml:tensorboard` - launch TensorBoard
+- ❌ `train` - incorrect
+- ❌ `tensorboard` - incorrect
+
+**Demo operations** → `demo:` prefix:
+- ✅ `demo:cli:record` - record CLI demo
+- ✅ `demo:cli:gif` - convert to GIF
+- ✅ `demo:cli:all` - record and convert
+- ❌ `record` - incorrect
+
 When creating new tasks, always use the appropriate category prefix.
 
 ### Task Conventions
@@ -215,6 +238,7 @@ task code:format          # Format code
 task code:format:check    # Check if code is formatted
 task code:clean           # Clean cache files
 task code:show:config     # Show ruff configuration
+task code:validate:pyproject  # Validate pyproject.toml against PEP standards
 ```
 
 ### Ruff Configuration
@@ -252,6 +276,175 @@ task code:fix          # Auto-fix all issues
   }
 }
 ```
+
+## Model Configuration
+
+The project uses **Bio_ClinicalBERT** fine-tuned for disease classification from symptom descriptions.
+
+### Model Path
+
+Configure the model location via environment variables:
+
+```bash
+# Create .env file from example
+cp .env.example .env
+
+# Edit .env to set model path
+MODEL_PATH=./models/symptom_classifier-mini/final/
+```
+
+**Available Models:**
+- `models/symptom_classifier-old-trainer/final/` - Default full model
+- `models/symptom_classifier-mini/final/` - Smaller alternative model
+- `models/diagnosia/` - Alternative variant
+
+**Environment Variables:**
+- `MODEL_PATH` - Path to trained model directory (default: `./models/symptom_classifier-old-trainer/final/`)
+
+### Model Features
+
+- Multi-class disease classification (6 diseases: anxiety, cystitis, herniated disk, panic disorder, pneumonia, spondylolisthesis)
+- Confidence scoring with adjustable thresholds
+- Support for unknown symptoms (fallback handling)
+- Device auto-detection (CUDA, MPS, or CPU)
+
+## Lightning AI Integration
+
+This project supports training on Lightning AI studios with GPU acceleration.
+
+### Quick Commands
+
+```bash
+# Authentication
+task lightning:login
+task lightning:logout
+
+# Studio management
+task lightning:studio:list          # List your studios
+task lightning:studio:list:all      # List all studios in teamspace
+task lightning:studio:start         # Start default studio (alyra-dl)
+task lightning:studio:start:t4      # Start with T4 GPU
+task lightning:studio:stop          # Stop default studio
+task lightning:studio:delete        # Delete default studio
+
+# SSH access
+task lightning:studio:ssh           # SSH into default studio
+
+# File transfer
+task lightning:studio:cp -- <source> <dest>
+task lightning:studio:download:model         # Download trained model
+task lightning:studio:download:results       # Download all results
+
+# Custom studio operations
+task lightning:studio:start:custom -- --name my-studio
+task lightning:studio:stop:custom -- --name my-studio
+```
+
+### Configuration
+
+Default studio configuration in `Taskfile.yml`:
+- **Studio name**: `alyra-dl`
+- **Teamspace**: `stephanewirtel/tool-exploration-project`
+- **Default machine**: CPU (use `:t4` variants for GPU)
+
+### Workflow
+
+See `LIGHTNING_WORKFLOW.md` for detailed training workflow on Lightning AI.
+
+**Typical workflow:**
+1. `task lightning:studio:start:t4` - Start studio with GPU
+2. `task lightning:studio:ssh` - SSH into studio
+3. Train model on studio
+4. `task lightning:studio:download:results` - Download results
+5. `task lightning:studio:stop` - Stop studio to save costs
+
+## Machine Learning Tasks
+
+### Training
+
+```bash
+# Train standard model on all 6 diseases
+task ml:train:standard
+
+# Quick training test (2 diseases, 20 epochs) for development
+task ml:train:quick
+
+# Custom training with additional arguments
+task ml:train:standard -- --epochs 50 --batch-size 32
+```
+
+**Training details:**
+- **Standard training**: 6 diseases (anxiety, cystitis, herniated disk, panic disorder, pneumonia, spondylolisthesis)
+- **Quick training**: 2 diseases (anxiety, pneumonia) for faster testing
+- **Output**: `models/symptom_classifier/` (standard) or `models/symptom_classifier_quick/` (quick)
+- **Features**: Data augmentation, early stopping, confusion matrix visualization
+
+### Data Preparation
+
+```bash
+# Prepare dataset from augmented source
+task ml:prepare:dataset
+
+# With custom diseases
+task ml:prepare:dataset -- --diseases "anxiety,pneumonia"
+```
+
+**Preparation details:**
+- **Input**: `data/Final_Augmented_dataset_Diseases_and_Symptoms.csv`
+- **Output**: `data/prepared-dataset.csv`
+- **Process**: Filtering by diseases, deduplication, validation
+
+### Visualization and Analysis
+
+```bash
+# Launch TensorBoard for training visualization
+task ml:tensorboard
+# Access at http://localhost:6006
+
+# Custom TensorBoard directory
+task ml:tensorboard:custom -- --logdir models/my-model
+
+# Analyze training logs and generate plots
+task ml:analyze
+
+# Compare multiple training runs
+task ml:analyze:compare -- run1 run2
+```
+
+### Scripts
+
+Training and data scripts are located in `scripts/`:
+
+**Data Preparation:**
+- `scripts/data/prepare_dataset.py` - Dataset filtering, deduplication, and preparation
+
+**Training:**
+- `scripts/training/train_standard.py` - Main training script with augmentation and evaluation
+- `scripts/training/train_model.py` - Legacy training script
+
+**Training Experiments:**
+
+See `EXPERIMENTS_README.md` for 4 training variants to handle imbalanced classes:
+1. Standard training (baseline)
+2. Class weights (balanced loss)
+3. Focal loss (hard examples)
+4. SMOTE oversampling (synthetic data)
+
+### Notebooks
+
+Jupyter notebooks for exploratory analysis in `notebooks/`:
+
+```bash
+# Start Jupyter
+jupyter notebook notebooks/
+
+# Available notebooks:
+# - eda_diseases_symptoms.ipynb - Disease/symptom relationships
+# - advanced_eda_statistical_analysis.ipynb - Statistical analysis
+# - eda_dataset_original_kaggle.ipynb - Original dataset
+# - eda_cleaned_dataset.ipynb - Cleaned dataset exploration
+```
+
 ## Applications
 
 This project includes four user-facing applications:
@@ -460,6 +653,73 @@ response = generate_response(
     model="mistral"
 )
 ```
+
+## Demo Recording
+
+This project includes tools for recording CLI demos and converting them to various formats.
+
+### Prerequisites
+
+Install recording tools:
+
+```bash
+# asciinema - Terminal session recorder
+brew install asciinema  # macOS
+# or
+apt-get install asciinema  # Linux
+
+# agg - Convert asciinema to GIF
+brew install agg  # macOS
+# or download from: https://github.com/asciinema/agg
+
+# ffmpeg - Convert GIF to MP4
+brew install ffmpeg  # macOS
+# or
+apt-get install ffmpeg  # Linux
+```
+
+### Recording Commands
+
+```bash
+# Record a CLI demo
+task demo:cli:record
+# Starts recording with: task app:cli -- --llm --llm-backend=lightning
+# Press Ctrl+D to stop recording
+
+# Record with custom filename
+task demo:cli:record -- my-demo
+
+# Convert recording to GIF
+task demo:cli:gif
+# or with custom filename:
+task demo:cli:gif -- my-demo
+
+# Convert GIF to MP4
+task demo:cli:mp4
+# or with custom filename:
+task demo:cli:mp4 -- my-demo
+
+# Do everything in one command
+task demo:cli:all
+# or with custom filename:
+task demo:cli:all -- my-demo
+```
+
+### Output Files
+
+- `<filename>` - asciinema recording (JSON format)
+- `<filename>.gif` - Animated GIF for documentation
+- `<filename>.mp4` - Video file for presentations
+
+**Default filename:** `alyra-ai-dl-cli`
+
+### Recording Tips
+
+- Keep demos short (1-2 minutes)
+- Use clear, representative examples
+- Pause briefly between commands for readability
+- Test the recording before final version
+- GIF files can be large - optimize with shorter recordings
 
 ## Additional Notes
 

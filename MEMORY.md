@@ -2,7 +2,7 @@
 
 This file contains the memory of conversations and decisions made during development. Claude Code instances should read this file at startup to understand the project context.
 
-**Last Updated:** 2025-12-11
+**Last Updated:** 2025-12-16
 
 ---
 
@@ -10,12 +10,16 @@ This file contains the memory of conversations and decisions made during develop
 
 ### Task Naming Convention
 All tasks MUST use category prefixes:
-- `code:*` → Code quality operations (linting, formatting, testing)
-- `venv:*` → Virtual environment operations (init, add, sync, install)
+- `code:*` → Code quality operations (linting, formatting, testing, validation)
+- `venv:*` → Virtual environment operations (init, add, sync, install, upgrade)
+- `lightning:*` → Lightning AI studio operations (login, start, stop, ssh, download)
+- `ml:*` → Machine learning operations (train, prepare dataset, tensorboard, analyze)
+- `app:*` → Application operations (cli, api, streamlit, chainlit)
+- `demo:*` → Demo recording operations (record, convert to gif/mp4)
 
 Examples:
-- ✅ `code:lint`, `code:format`, `venv:add`
-- ❌ `lint`, `format`, `add`
+- ✅ `code:lint`, `venv:add`, `lightning:studio:start`, `ml:train:standard`, `app:cli`, `demo:cli:record`
+- ❌ `lint`, `add`, `train`, `cli`, `record`
 
 ### Tool Configuration
 - **Ruff**: Single tool for linting, formatting, and import sorting (replaced isort)
@@ -66,6 +70,33 @@ Examples:
 
 ## 📅 Session History
 
+### Session 2025-12-16: Comprehensive CLAUDE.md documentation update
+**What was done:**
+1. Rescanned entire codebase using Explore agent (very thorough mode)
+2. Identified gaps in CLAUDE.md documentation
+3. Added 4 major new sections to CLAUDE.md:
+   - Model Configuration (model paths, environment variables, features)
+   - Lightning AI Integration (15 tasks, workflow, studio management)
+   - Machine Learning Tasks (training, data prep, visualization, notebooks)
+   - Demo Recording (asciinema, GIF/MP4 conversion)
+4. Updated Task Naming Convention section with all prefixes:
+   - Added `lightning:*`, `ml:*`, `app:*`, `demo:*` prefixes
+   - Now documents 40+ tasks across 6 categories
+5. Added `code:validate:pyproject` to code quality tools
+6. Documented all 4 applications (CLI, API, Streamlit, Chainlit)
+7. Updated MEMORY.md with expanded task conventions
+
+**Documentation improvements:**
+- ~200 lines of new documentation added
+- 26 new tasks documented
+- 4 major sections added
+- Complete Lightning AI workflow documented
+- Training and ML pipeline fully documented
+
+**Files modified:**
+- `CLAUDE.md` - Major expansion with new sections
+- `MEMORY.md` - Updated conventions and session history
+
 ### Session 2025-12-11: Initial project setup
 **What was done:**
 1. Created project structure with CLAUDE.md, Taskfile.yml, pyproject.toml
@@ -97,14 +128,18 @@ Examples:
 - [ ] Add pre-commit hooks for automatic code quality checks
 - [ ] Add pytest configuration and test tasks (code:test, code:test:coverage)
 - [ ] Add mypy for type checking (code:typecheck)
-- [ ] Consider adding jupyter notebook support if needed
+- [x] ~~Consider adding jupyter notebook support if needed~~ - Already has Jupyter notebooks in notebooks/
 - [ ] Add docs:* category for documentation tasks
 - [ ] Add CI/CD workflow with GitHub Actions
+- [ ] Consider adding training metrics visualization to Streamlit app
+- [ ] Add more training experiments (see EXPERIMENTS_README.md)
 
 ### Questions to address
-- Will this project need Lightning Studio integration?
-- Do we need API development tasks (FastAPI)?
-- Should we add database tasks (db:*)?
+- [x] ~~Will this project need Lightning Studio integration?~~ - Yes, fully integrated with 15 lightning:* tasks
+- [x] ~~Do we need API development tasks (FastAPI)?~~ - Yes, API app exists at apps/api.py
+- [ ] Should we add database tasks (db:*)?
+- [ ] Should we add more model variants or fine-tuning options?
+- [ ] Do we need automated model evaluation tasks?
 
 ---
 
